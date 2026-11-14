@@ -1,7 +1,9 @@
 // app.js — chỉ lo giao diện: đọc input, gọi castChart, vẽ lá quẻ, đồng bộ URL.
-// Quy tắc an quẻ nằm trong luchao-core.js (không sửa); phản/phục ngâm trong luchao-extra.js.
+// Quy tắc an quẻ nằm trong luchao-core.js (không sửa); phản/phục ngâm trong luchao-extra.js;
+// nạp can, vượng suy, trường sinh, Đào hoa, Dịch mã, âm lịch trong luchao-info.js.
 import { castChart, solarTermJD, jdToLocalString, CHI_HANH } from "./luchao-core.js";
 import { phanPhucNgam } from "./luchao-extra.js";
+import { chiTietHao, amLich, canChiNam, tietKhi24, daoHoa, dichMa } from "./luchao-info.js";
 
 const TZ = 7;
 // true khi chạy trong bản đóng gói một file (scripts/build-embed.mjs)
@@ -13,7 +15,6 @@ const STATES = {
   6: { label: "Âm động", duong: false, dong: true },
 };
 const CYCLE = [7, 8, 9, 6];
-const FLAG_SHORT = { "Không": "K", "Nguyệt phá": "NP", "Nhật xung": "NX" };
 
 const $ = (s) => document.querySelector(s);
 const form = $("#cast-form");
@@ -51,9 +52,8 @@ function parseDT(s) {
 const fmtDT = (dt) => `${pad(dt.d)}/${pad(dt.m)}/${dt.y} ${pad(dt.h)}:${pad(dt.mi)}`;
 const jdOf = (dt) => Date.UTC(dt.y, dt.m - 1, dt.d, dt.h, dt.mi) / 86400000 + 2440587.5 - TZ / 24;
 
-function barHTML(isDuong, { dong = false, small = false } = {}) {
-  const cls = `bar ${isDuong ? "duong" : "am"}${dong ? " dong" : ""}${small ? " sm" : ""}`;
-  return `<span class="${cls}" aria-hidden="true">${isDuong ? "<i></i>" : "<i></i><i></i>"}</span>`;
+function barHTML(isDuong, { dong = false, cls = "" } = {}) {
+  return `<span class="bar ${isDuong ? "duong" : "am"}${dong ? " dong" : ""} ${cls}" aria-hidden="true">${isDuong ? "<i></i>" : "<i></i><i></i>"}</span>`;
 }
 
 // ───────── Khu nhập ─────────
@@ -118,7 +118,7 @@ $("#reset-btn").addEventListener("click", () => {
   ziEl.checked = true;
   resultEl.hidden = true;
   resultEl.innerHTML = "";
-  history.replaceState(null, "", location.pathname);
+  try { history.replaceState(null, "", location.pathname); } catch { /* bỏ qua */ }
   syncUI();
 });
 
@@ -127,7 +127,7 @@ form.addEventListener("submit", (e) => {
   cast(true);
 });
 
-// ───────── Lập quẻ & vẽ ─────────
+// ───────── Lập quẻ ─────────
 let lastText = "";
 
 function cast(scroll) {
@@ -136,7 +136,6 @@ function cast(scroll) {
   if (!dt) { dtEl.value = nowVN(); dt = parseDT(dtEl.value); }
   const zi = ziEl.checked;
   const chart = castChart([...lines], dt, { tz: TZ, ziHourNextDay: zi });
-  const ngam = phanPhucNgam(chart);
   // Ghép tay để giữ dấu ":" dễ đọc: ?h=997888&t=2026-11-08T14:18
   // Bản nhúng (artifact) chỉ giữ được #hash dạng chữ-số-gạch: #q-997888-202611081418[-z0]
   const t = dtEl.value.slice(0, 16);
@@ -144,7 +143,7 @@ function cast(scroll) {
     ? `#q-${lines.join("")}-${t.replace(/\D/g, "")}${zi ? "" : "-z0"}`
     : `${location.pathname}?h=${lines.join("")}&t=${t}${zi ? "" : "&z=0"}`;
   try { history.replaceState(null, "", next); } catch { /* khung nhúng có thể chặn */ }
-  render(chart, ngam, dt);
+  render(chart, dt, zi);
   if (scroll) resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -156,122 +155,210 @@ function nearTermWarning(p, dt) {
   return Math.min(Math.abs(jd - start), Math.abs(next - jd)) * 1440 < 30;
 }
 
-const gz = (x) => `${x.can} ${x.chi}`;
-const flagsTxt = (f) => f.map((x) => `(${FLAG_SHORT[x]})`).join(" ");
-const flagsHTML = (f) => f.map((x) => ` <abbr class="flag" title="${x}">(${FLAG_SHORT[x]})</abbr>`).join("");
-const theUng = (g, i) => (g.the === i + 1 ? "Thế" : g.ung === i + 1 ? "Ứng" : "");
-
-// Ô "Lục thân + Can chi + Ngũ hành" hai dòng: "Huynh Đệ" / "Thìn Thổ (K)"
-const ltCell = (lucThan, chi, hanh, flags = []) =>
-  `<span class="lt-name h-${hanh}">${lucThan}</span> <span class="lt-chi h-${hanh}">${chi} ${hanh}</span>${flagsHTML(flags)}`;
-
-function guaCard(title, g, extraNote = "") {
-  return `<div class="gua-card">
-    <div class="gua-kind">${title}</div>
-    <div class="gua-name">${g.name}</div>
-    <dl>
-      <dt>Thuộc cung</dt><dd>${g.palace} <span class="h-${g.palaceHanh}">(${g.palaceHanh})</span></dd>
-      <dt>Thứ tự</dt><dd>${g.stage}</dd>
-      <dt>Thế / Ứng</dt><dd>Thế hào ${g.the} · Ứng hào ${g.ung}</dd>
-      <dt>Lục xung / hợp</dt><dd>${g.quaiTinh ? `<span class="pill">${g.quaiTinh}</span>` : "Không"}</dd>
-    </dl>${extraNote}
-  </div>`;
+// Âm lịch; nếu đổi ngày lúc 23h thì giờ Tý muộn tính sang ngày âm hôm sau cho khớp trụ ngày
+function lunarOf(dt, zi) {
+  let { y, m, d } = dt;
+  if (zi && dt.h >= 23) {
+    const n = new Date(Date.UTC(y, m - 1, d + 1));
+    y = n.getUTCFullYear(); m = n.getUTCMonth() + 1; d = n.getUTCDate();
+  }
+  return amLich(d, m, y, TZ);
 }
 
-function render(chart, ngam, dt) {
+// ───────── Vẽ lá quẻ ─────────
+const gz = (x) => `${x.can} ${x.chi}`;
+const theUng = (g, i) => (g.the === i + 1 ? "Thế" : g.ung === i + 1 ? "Ứng" : "");
+const TOT = new Set(["Lâm nguyệt lệnh", "Lâm nhật thần", "Nhật xung · Ám động"]);
+const XAU = new Set(["Nguyệt phá", "Nhật xung · Nhật phá", "Tuần không"]);
+const chip = (txt, kind = "") => `<span class="chip ${kind}">${txt}</span>`;
+const chipTT = (txt) => chip(txt, TOT.has(txt) ? "good" : XAU.has(txt) ? "bad" : "info");
+const chipSao = (txt) => chip(txt, "sao");
+const hanhSpan = (chi, hanh) => `<span class="h-${hanh}">${chi} – ${hanh}</span>`;
+
+function bigGua(bits, moving) {
+  // bits: 6 phần tử, hào 1 → 6; vẽ từ trên (hào 6) xuống
+  let s = "";
+  for (let i = 5; i >= 0; i--) s += barHTML(bits[i] === "Dương", { dong: moving[i], cls: "big" });
+  return `<div class="big-gua">${s}</div>`;
+}
+
+function guaFigure(kind, g, bits, moving) {
+  const nhan = [`Cung ${g.palace} (${g.palaceHanh})`, g.stage, g.quaiTinh].filter(Boolean).join(" · ");
+  return `<figure class="gua-fig">
+    <figcaption><span class="gua-kind">${kind}</span><span class="gua-name">${g.name}</span></figcaption>
+    ${bigGua(bits, moving)}
+    <p class="gua-sub">${nhan}</p>
+    <p class="gua-sub">Thế hào ${g.the} · Ứng hào ${g.ung}</p>
+  </figure>`;
+}
+
+function render(chart, dt, zi) {
   const p = chart.pillars;
   const { chu, bien } = chart;
+  const ct = chiTietHao(chart);
+  const ngam = phanPhucNgam(chart);
   const warn = nearTermWarning(p, dt);
-  const tietStart = jdToLocalString(p.tiet.batDauJD, TZ);
+  const al = lunarOf(dt, zi);
+  const moving = chart.hao.map((h) => h.dong);
+  const chuBits = chart.hao.map((h) => h.am_duong);
+  const bienBits = chart.bienFull ? chart.bienFull.map((b) => b.am_duong) : null;
+  const order = [5, 4, 3, 2, 1, 0];
+  const lucThuCol = (i) => `<td class="lucthu">${chart.hao[i].lucThu}</td>`;
 
-  const rows = [];
-  for (let i = 5; i >= 0; i--) {
-    const h = chart.hao[i];
-    const bf = chart.bienFull ? chart.bienFull[i] : null;
-    const cls = [h.dong ? "moving" : "", h.the ? "is-the" : "", h.ung ? "is-ung" : ""].filter(Boolean).join(" ");
-    const tu = theUng(chu, i);
-    const tags = [
-      tu ? `<span class="tag ${tu === "Thế" ? "the" : "ung"}">${tu}</span>` : "",
-      h.dong ? `<span class="tag dong">${h.am_duong} động</span>` : "",
-    ].join("");
-    const phuc = h.phucThan ? ltCell(h.phucThan.lucThan, h.phucThan.chi, h.phucThan.hanh) : "";
-    let bienCell = "";
-    if (bf) {
+  // ── Bảng an quẻ (quẻ chủ | quẻ biến) ──
+  const chuRows = order.map((i) => {
+    const h = chart.hao[i], c = ct[i].chu, tu = theUng(chu, i);
+    return `<tr class="${h.dong ? "moving" : ""}">
+      <td class="col-bar">${barHTML(h.am_duong === "Dương", { dong: h.dong })}<span class="sr-only">Hào ${i + 1}${h.dong ? `, ${h.am_duong.toLowerCase()} động` : ""}</span></td>
+      <td class="tu">${tu ? `<span class="tu-${tu === "Thế" ? "the" : "ung"}">${tu}</span>` : ""}</td>
+      <th scope="row" class="lt">${h.lucThan}</th>
+      <td class="cc">${hanhSpan(h.chi, h.hanh)}</td>
+      <td class="phuc">${h.phucThan ? `${h.phucThan.lucThan}<br>${hanhSpan(h.phucThan.chi, h.phucThan.hanh)}` : "–"}</td>
+      <td class="tt">${c.trangThai.map(chipTT).join("") || "–"}</td>
+      ${bien ? "" : lucThuCol(i)}
+    </tr>`;
+  }).join("");
+  const bienRows = bien ? order.map((i) => {
+    const b = ct[i].bien, bf = chart.bienFull[i], tu = theUng(bien, i);
+    return `<tr class="${b.tuHaoDong ? "moving" : ""}">
+      <th scope="row" class="lt">${bf.lucThan}${tu ? ` <span class="tu-soft">${tu}</span>` : ""}</th>
+      <td class="cc">${hanhSpan(bf.chi, bf.hanh)}</td>
+      ${lucThuCol(i)}
+      <td class="tt">${b.trangThai.map(chipTT).join("") || "–"}</td>
+      <td class="col-bar">${barHTML(bf.am_duong === "Dương", { dong: b.tuHaoDong })}</td>
+    </tr>`;
+  }).join("") : "";
+
+  // ── Vượng suy, trường sinh ──
+  const vsRows = (side) => order.map((i) => {
+    const x = ct[i][side];
+    const dong = side === "chu" ? chart.hao[i].dong : x.tuHaoDong;
+    return `<tr class="${dong ? "moving" : ""}">
+      <th scope="row"><span class="h-${x.hanh}">${x.can} ${x.chi}</span></th>
+      <td class="vs vs-${x.vuongSuy}">${x.vuongSuy}</td>
+      <td>${x.tsNgay}</td>
+      <td>${x.tsThang}</td>
+    </tr>`;
+  }).join("");
+  const vsTable = (side, title) => `<div class="tbl-wrap"><table class="sheet vs-table">
+    <caption>${title}</caption>
+    <thead><tr><th scope="col">Hào</th><th scope="col">Vượng suy<br><span class="th-sub">theo tháng</span></th><th scope="col">Trường sinh<br><span class="th-sub">theo ngày</span></th><th scope="col">Trường sinh<br><span class="th-sub">theo tháng</span></th></tr></thead>
+    <tbody>${vsRows(side)}</tbody></table></div>`;
+
+  // ── Tổng hợp theo từng hào ──
+  const cards = order.map((i) => {
+    const h = chart.hao[i], c = ct[i].chu, b = ct[i].bien, tu = theUng(chu, i);
+    const chuChips = [...c.sao.map(chipSao), ...c.trangThai.map(chipTT)].join("");
+    let bienCol = "";
+    if (b) {
       const btu = theUng(bien, i);
-      const nm = ngam.hao[i];
-      bienCell = `<div class="bien-in${h.dong ? " from-dong" : ""}">
-        ${barHTML(bf.am_duong === "Dương", { small: true })}
-        <div>${ltCell(bf.lucThan, bf.chi, bf.hanh, h.bien ? h.bien.flags : [])}
-        ${btu ? `<span class="tag soft">${btu}</span>` : ""}${nm ? `<span class="tag ngam">${nm}</span>` : ""}</div>
+      const bChips = [...b.sao.map(chipSao), ...b.trangThai.map(chipTT), b.ngam ? chip(b.ngam, "ngam") : ""].join("");
+      bienCol = `<div class="hc-col${b.tuHaoDong ? " from-dong" : ""}">
+        <div class="hc-main"><b>${b.lucThan}</b> <span class="h-${b.hanh}">${b.can} ${b.chi} – ${b.hanh}</span>${btu ? ` <span class="tu-soft">${btu}</span>` : ""}</div>
+        ${bChips ? `<div class="chips">${bChips}</div>` : `<div class="hint small">Không có gì nổi bật</div>`}
       </div>`;
     }
-    rows.push(`<tr class="${cls}">
-      <th scope="row" class="lucthu">${h.lucThu}</th>
-      <td class="phuc">${phuc}</td>
-      <td class="lt">${ltCell(h.lucThan, h.chi, h.hanh, h.flags)}</td>
-      <td class="col-hao">${barHTML(h.am_duong === "Dương", { dong: h.dong })}<div class="tags">${tags}</div><span class="sr-only">Hào ${h.viTri}</span></td>
-      ${bien ? `<td class="bien-cell">${bienCell}</td>` : ""}
-    </tr>`);
+    return `<li class="hao-card${h.dong ? " moving" : ""}">
+      <div class="hc-label">
+        <b>${ct[i].ten}</b>
+        ${barHTML(h.am_duong === "Dương", { dong: h.dong })}
+        ${h.dong ? `<span class="badge-dong">${h.am_duong} động</span>` : ""}
+      </div>
+      <div class="hc-col">
+        <div class="hc-main"><b>${h.lucThan}</b> <span class="h-${h.hanh}">${c.can} ${c.chi} – ${c.hanh}</span>${tu ? ` <span class="tu-${tu === "Thế" ? "the" : "ung"}">${tu}</span>` : ""}</div>
+        <div class="hint small">Lục thú: ${h.lucThu}${h.phucThan ? ` · Phục thần: ${h.phucThan.lucThan} ${h.phucThan.chi} – ${h.phucThan.hanh}` : ""}</div>
+        ${chuChips ? `<div class="chips">${chuChips}</div>` : `<div class="hint small">Không có gì nổi bật</div>`}
+      </div>
+      ${bienCol}
+    </li>`;
+  }).join("");
+
+  const ngamItems = [];
+  if (bien) {
+    ngam.quai.forEach((q) => ngamItems.push(`<li><b>${q.vi} ${q.loai.toLowerCase()}</b>: ${q.lyDo}</li>`));
+    const hn = ngam.hao.map((x, i) => (x ? `hào ${i + 1} ${chart.hao[i].chi} biến ${chart.hao[i].bien.chi} (${x.toLowerCase()})` : null)).filter(Boolean);
+    if (hn.length) ngamItems.push(`<li><b>Hào biến</b>: ${hn.join("; ")}</li>`);
+    if (!ngamItems.length) ngamItems.push("<li>Không có phản ngâm, không có phục ngâm.</li>");
+    if (ngam.hopXung) ngamItems.push(`<li><b>${ngam.hopXung}</b></li>`);
   }
 
-  const ngamList = [];
-  if (bien) {
-    ngam.quai.forEach((q) => ngamList.push(`<li><b>${q.vi} ${q.loai.toLowerCase()}</b>: ${q.lyDo}</li>`));
-    const haoNgam = ngam.hao.map((x, i) => (x ? `hào ${i + 1} ${chart.hao[i].chi} → ${chart.hao[i].bien.chi} (${x.toLowerCase()})` : null)).filter(Boolean);
-    if (haoNgam.length) ngamList.push(`<li><b>Hào biến</b>: ${haoNgam.join("; ")}</li>`);
-  }
+  const tietStart = jdToLocalString(p.tiet.batDauJD, TZ);
+  const amText = `giờ ${p.gio.chi}, ngày ${al.ngay} tháng ${al.thang}${al.nhuan ? " nhuận" : ""} năm ${canChiNam(al.nam)}`;
 
   resultEl.innerHTML = `
-    <h2>Lá quẻ</h2>
-    <div class="pillar-grid" role="list">
-      <div role="listitem"><span>Năm</span><b>${gz(p.nam)}</b></div>
-      <div role="listitem"><span>Tháng</span><b>${gz(p.thang)}</b></div>
-      <div role="listitem"><span>Ngày</span><b>${gz(p.ngay)}</b></div>
-      <div role="listitem"><span>Giờ</span><b>${gz(p.gio)}</b></div>
-    </div>
-    <ul class="meta">
-      <li>Tuần không: <b>${p.tuanKhong.join(" ")}</b></li>
-      <li>Nguyệt lệnh: <b class="h-${CHI_HANH[p.thang.chi]}">${p.thang.chi} ${CHI_HANH[p.thang.chi]}</b> · Nhật thần: <b class="h-${CHI_HANH[p.ngay.chi]}">${p.ngay.chi} ${CHI_HANH[p.ngay.chi]}</b></li>
-      <li>Tiết: <b>${p.tiet.ten}</b> <span class="hint">(từ ${tietStart})</span></li>
-      <li class="hint">Gieo lúc ${fmtDT(dt)} giờ VN${ziEl.checked ? "" : ", đổi ngày lúc 0h"}</li>
-    </ul>
+    <h2 class="sheet-title">Lá quẻ Lục Hào</h2>
+    <dl class="info-grid">
+      <div><dt>Thời điểm lập quẻ</dt><dd>${fmtDT(dt)} <span class="hint">(giờ Việt Nam${zi ? "" : ", đổi ngày lúc 0h"})</span></dd></div>
+      <div><dt>Theo âm lịch</dt><dd>${amText}</dd></div>
+      <div class="wide"><dt>Can chi</dt><dd>giờ <b>${gz(p.gio)}</b>, ngày <b>${gz(p.ngay)}</b>, tháng <b>${gz(p.thang)}</b>, năm <b>${gz(p.nam)}</b></dd></div>
+      <div><dt>Tiết khí</dt><dd><b>${tietKhi24(p.sunLongitude)}</b> <span class="hint">(tháng ${p.thang.chi} tính từ tiết ${p.tiet.ten}, ${tietStart})</span></dd></div>
+      <div><dt>Tuần không</dt><dd><b>${p.tuanKhong.join(", ")}</b></dd></div>
+      <div><dt>Nhật thần</dt><dd><b class="h-${CHI_HANH[p.ngay.chi]}">${p.ngay.chi} – ${CHI_HANH[p.ngay.chi]}</b></dd></div>
+      <div><dt>Nguyệt lệnh</dt><dd><b class="h-${CHI_HANH[p.thang.chi]}">${p.thang.chi} – ${CHI_HANH[p.thang.chi]}</b></dd></div>
+      <div><dt>Đào hoa</dt><dd>${daoHoa(p.ngay.chi)}</dd></div>
+      <div><dt>Dịch mã</dt><dd>${dichMa(p.ngay.chi)}</dd></div>
+    </dl>
     ${warn ? `<p class="warn" role="note">Gần giờ giao tiết, hãy đối chiếu tháng.</p>` : ""}
-    <div class="gua-cards">
-      ${guaCard("Quẻ chủ", chu)}
-      ${bien ? guaCard("Quẻ biến", bien, `<p class="hint small">Lục thân quẻ biến tính theo cung quẻ chủ (${chu.palace} – ${chu.palaceHanh}).</p>`) : `<div class="gua-card"><div class="gua-kind">Quẻ biến</div><p>Không có hào động nên không có quẻ biến (quẻ tĩnh).</p></div>`}
+
+    <div class="gua-pair${bien ? "" : " single"}">
+      ${guaFigure("Quẻ chủ", chu, chuBits, moving)}
+      ${bien ? `<div class="gua-arrow" aria-hidden="true">biến<br>→</div>${guaFigure("Quẻ biến", bien, bienBits, moving)}` : ""}
     </div>
-    ${bien ? `<div class="ngam">
-      <h3>Phản ngâm · Phục ngâm · Hợp/Xung</h3>
-      <ul>
-        ${ngamList.length ? ngamList.join("") : "<li>Không có phản ngâm, không có phục ngâm.</li>"}
-        ${ngam.hopXung ? `<li><b>${ngam.hopXung}</b></li>` : ""}
-      </ul>
-    </div>` : ""}
-    <div class="table-wrap">
-    <table class="chart${bien ? "" : " no-bien"}">
-      <caption>Hào 6 ở trên, hào 1 ở dưới</caption>
-      <thead><tr>
-        <th scope="col">Lục thú</th>
-        <th scope="col">Phục thần</th>
-        <th scope="col">Quẻ chủ<br><span class="th-sub">${chu.name}</span></th>
-        <th scope="col">Hào</th>
-        ${bien ? `<th scope="col">Quẻ biến<br><span class="th-sub">${bien.name}</span></th>` : ""}
-      </tr></thead>
-      <tbody>${rows.join("")}</tbody>
-    </table>
+    ${bien ? "" : `<p class="hint center">Không có hào động nên không có quẻ biến (quẻ tĩnh).</p>`}
+
+    ${bien ? `<div class="ngam"><h3>Phản ngâm · Phục ngâm · Lục hợp / Lục xung</h3><ul>${ngamItems.join("")}</ul></div>` : ""}
+
+    <h3 class="sec">Bảng an quẻ</h3>
+    <div class="pair${bien ? "" : " single"}">
+      <div class="tbl-wrap"><table class="sheet main-table">
+        <caption>Quẻ chủ: ${chu.name}</caption>
+        <thead><tr>
+          <th scope="col">Hào</th><th scope="col">Thế / Ứng</th><th scope="col">Lục thân</th><th scope="col">Can chi</th>
+          <th scope="col">Phục thần</th><th scope="col">Trạng thái</th>${bien ? "" : `<th scope="col">Lục thú</th>`}
+        </tr></thead>
+        <tbody>${chuRows}</tbody>
+      </table></div>
+      ${bien ? `<div class="tbl-wrap"><table class="sheet main-table">
+        <caption>Quẻ biến: ${bien.name}</caption>
+        <thead><tr>
+          <th scope="col">Lục thân</th><th scope="col">Can chi</th><th scope="col">Lục thú</th><th scope="col">Trạng thái</th><th scope="col">Hào</th>
+        </tr></thead>
+        <tbody>${bienRows}</tbody>
+      </table></div>` : ""}
     </div>
-    <p class="legend">
-      ${barHTML(true)} dương · ${barHTML(false)} âm ·
-      ${barHTML(true, { dong: true })} vạch đỏ = <b>hào động</b> (dương động biến thành âm, âm động biến thành dương) ·
-      (K) Tuần không · (NP) Nguyệt phá · (NX) Nhật xung
-    </p>
+
+    <h3 class="sec">Vượng suy và trường sinh</h3>
+    <div class="pair${bien ? "" : " single"}">
+      ${vsTable("chu", `Quẻ chủ: ${chu.name}`)}
+      ${bien ? vsTable("bien", `Quẻ biến: ${bien.name}`) : ""}
+    </div>
+
+    <h3 class="sec">Tổng hợp theo từng hào</h3>
+    <div class="hc-head${bien ? "" : " single"}" aria-hidden="true"><span>Hào</span><span>Quẻ chủ</span>${bien ? "<span>Quẻ biến</span>" : ""}</div>
+    <ol class="hao-cards${bien ? "" : " single"}">${cards}</ol>
+
+    <details class="glossary">
+      <summary>Giải thích các thuật ngữ</summary>
+      <dl>
+        <dt>Tuần không</dt><dd>Hai địa chi bị bỏ trống trong tuần mười ngày chứa ngày gieo quẻ. Hào gặp Tuần không tạm thời chưa có lực.</dd>
+        <dt>Nguyệt phá</dt><dd>Địa chi của hào xung với tháng (nguyệt lệnh). Hào bị Nguyệt phá rất yếu trong tháng đó.</dd>
+        <dt>Nhật xung · Ám động</dt><dd>Hào tĩnh đang vượng hoặc tướng mà bị ngày xung thì động ngầm, có tác dụng như hào động.</dd>
+        <dt>Nhật xung · Nhật phá</dt><dd>Hào tĩnh đang hưu, tù hoặc tử mà bị ngày xung thì bị xung tán, càng yếu.</dd>
+        <dt>Lâm nguyệt lệnh, Lâm nhật thần</dt><dd>Địa chi của hào trùng với chi tháng hoặc chi ngày, được thêm lực.</dd>
+        <dt>Vượng, Tướng, Hưu, Tù, Tử</dt><dd>Sức mạnh của hào theo tháng: cùng hành với tháng là Vượng, được tháng sinh là Tướng, sinh cho tháng là Hưu, khắc tháng là Tù, bị tháng khắc là Tử.</dd>
+        <dt>Trường sinh</dt><dd>Mười hai giai đoạn (Trường sinh, Mộc dục, Quan đới, Lâm quan, Đế vượng, Suy, Bệnh, Tử, Mộ, Tuyệt, Thai, Dưỡng) của ngũ hành hào so với chi ngày và chi tháng. Lục hào cho Thổ theo Thủy.</dd>
+        <dt>Đào hoa, Dịch mã</dt><dd>Tính theo chi ngày. Đào hoa liên quan tình cảm, sắc đẹp; Dịch mã liên quan đi lại, di chuyển, thay đổi.</dd>
+        <dt>Phục thần</dt><dd>Lục thân vắng mặt trong quẻ chủ, lấy từ quẻ thuần của cung ở cùng vị trí hào.</dd>
+      </dl>
+    </details>
+
     <div class="result-actions">
       <button type="button" class="btn ghost sm" id="copy-text">Sao chép lá quẻ</button>
       ${EMBED ? "" : `<button type="button" class="btn ghost sm" id="copy-link">Chia sẻ link</button>`}
       <span class="hint" id="copy-status" aria-live="polite"></span>
     </div>`;
   resultEl.hidden = false;
-  lastText = plainText(chart, ngam, dt, warn);
+  lastText = plainText(chart, ct, ngam, dt, warn, amText);
   $("#copy-text").addEventListener("click", () => copy(lastText, "Đã chép lá quẻ"));
   $("#copy-link")?.addEventListener("click", () => copy(location.href, "Đã chép link"));
 }
@@ -280,38 +367,46 @@ function guaLine(g) {
   return `${g.name} – cung ${g.palace} (${g.palaceHanh}), ${g.stage}, Thế hào ${g.the}, Ứng hào ${g.ung}${g.quaiTinh ? `, ${g.quaiTinh}` : ""}`;
 }
 
-function plainText(chart, ngam, dt, warn) {
+function plainText(chart, ct, ngam, dt, warn, amText) {
   const p = chart.pillars;
   const { chu, bien } = chart;
-  const col = (s, w) => { s = String(s); return s.length >= w ? `${s} ` : s + " ".repeat(w - s.length); };
   const out = [];
-  out.push(`Năm ${gz(p.nam)} · Tháng ${gz(p.thang)} · Ngày ${gz(p.ngay)} · Giờ ${gz(p.gio)}`);
-  out.push(`Tuần không: ${p.tuanKhong.join(" ")} · Tiết: ${p.tiet.ten} · Gieo lúc ${fmtDT(dt)} (giờ VN)`);
+  out.push("LÁ QUẺ LỤC HÀO");
+  out.push(`Thời điểm: ${fmtDT(dt)} (giờ VN) · Âm lịch: ${amText}`);
+  out.push(`Can chi: giờ ${gz(p.gio)}, ngày ${gz(p.ngay)}, tháng ${gz(p.thang)}, năm ${gz(p.nam)}`);
+  out.push(`Tiết khí: ${tietKhi24(p.sunLongitude)} · Tuần không: ${p.tuanKhong.join(", ")} · Nhật thần: ${p.ngay.chi}-${CHI_HANH[p.ngay.chi]} · Nguyệt lệnh: ${p.thang.chi}-${CHI_HANH[p.thang.chi]}`);
+  out.push(`Đào hoa: ${daoHoa(p.ngay.chi)} · Dịch mã: ${dichMa(p.ngay.chi)}`);
   if (warn) out.push("Lưu ý: gần giờ giao tiết, hãy đối chiếu tháng.");
   out.push(`Quẻ chủ: ${guaLine(chu)}`);
   out.push(bien ? `Quẻ biến: ${guaLine(bien)}` : "Quẻ tĩnh (không có hào động)");
   if (bien) {
     const notes = [...ngam.tongKet];
-    const haoNgam = ngam.hao.map((x, i) => (x ? `hào ${i + 1} ${x.toLowerCase()}` : null)).filter(Boolean);
-    if (haoNgam.length) notes.push(haoNgam.join(", "));
+    const hn = ngam.hao.map((x, i) => (x ? `hào ${i + 1} ${x.toLowerCase()}` : null)).filter(Boolean);
+    if (hn.length) notes.push(hn.join(", "));
     if (ngam.hopXung) notes.push(ngam.hopXung);
-    out.push(`Phản/Phục ngâm: ${notes.length ? notes.join("; ") : "không"}`);
+    out.push(`Phản ngâm / Phục ngâm: ${notes.length ? notes.join("; ") : "không có"}`);
   }
   out.push("");
-  out.push(col("Lục thú", 11) + col("Phục thần", 18) + col("Quẻ chủ", 41) + (bien ? "Quẻ biến" : ""));
-  for (let i = 5; i >= 0; i--) {
-    const h = chart.hao[i];
-    const phuc = h.phucThan ? `${h.phucThan.lucThan} ${h.phucThan.chi} ${h.phucThan.hanh}` : "";
-    const main = [`${h.lucThan} ${h.chi} ${h.hanh}`, flagsTxt(h.flags)].filter(Boolean).join(" ");
-    const bar = h.am_duong === "Dương" ? "▅▅▅" : "▅ ▅";
+  for (const i of [5, 4, 3, 2, 1, 0]) {
+    const h = chart.hao[i], c = ct[i].chu, b = ct[i].bien;
     const tu = theUng(chu, i);
-    const dong = h.dong ? `${h.am_duong.toLowerCase()} động` : "";
-    let bv = "";
-    if (chart.bienFull) {
-      const bf = chart.bienFull[i];
-      bv = [bf.am_duong === "Dương" ? "▅▅▅" : "▅ ▅", `${bf.lucThan} ${bf.chi} ${bf.hanh}`, h.bien ? flagsTxt(h.bien.flags) : "", theUng(bien, i)].filter(Boolean).join(" ");
+    const bar = h.am_duong === "Dương" ? "▅▅▅" : "▅ ▅";
+    const parts = [
+      `${ct[i].ten}: ${bar}${h.dong ? ` (${h.am_duong.toLowerCase()} động)` : ""}`,
+      h.lucThu,
+      `${h.lucThan} ${c.can} ${c.chi}-${c.hanh}${tu ? ` [${tu}]` : ""}`,
+      c.vuongSuy,
+    ];
+    const extra = [...c.sao, ...c.trangThai];
+    if (h.phucThan) extra.push(`Phục thần ${h.phucThan.lucThan} ${h.phucThan.chi}-${h.phucThan.hanh}`);
+    if (extra.length) parts.push(extra.join(", "));
+    let line = parts.join(" · ");
+    if (b) {
+      const btu = theUng(bien, i);
+      const bx = [...b.sao, ...b.trangThai, b.ngam].filter(Boolean);
+      line += `  →  ${b.lucThan} ${b.can} ${b.chi}-${b.hanh}${btu ? ` [${btu}]` : ""}${bx.length ? ` (${bx.join(", ")})` : ""}`;
     }
-    out.push((col(h.lucThu, 11) + col(phuc, 18) + col(main, 22) + col(bar, 4) + col(tu, 4) + col(dong, 11) + bv).trimEnd());
+    out.push(line);
   }
   if (!EMBED) { out.push(""); out.push(location.href); }
   return out.join("\n");
