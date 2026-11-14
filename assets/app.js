@@ -4,6 +4,7 @@
 import { castChart, solarTermJD, jdToLocalString, CHI_HANH } from "./luchao-core.js";
 import { phanPhucNgam } from "./luchao-extra.js";
 import { chiTietHao, amLich, canChiNam, tietKhi24, daoHoa, dichMa } from "./luchao-info.js";
+import { drawSheet } from "./luchao-image.js";
 
 const TZ = 7;
 // true khi chạy trong bản đóng gói một file (scripts/build-embed.mjs)
@@ -129,6 +130,7 @@ form.addEventListener("submit", (e) => {
 
 // ───────── Lập quẻ ─────────
 let lastText = "";
+let lastModel = null; // dữ liệu để vẽ ảnh lá quẻ
 
 function cast(scroll) {
   if (lines.some((v) => v === null)) return;
@@ -301,12 +303,16 @@ function render(chart, dt, zi) {
   }).join("");
 
   const ngamItems = [];
+  const ngamPlain = []; // cùng nội dung, dạng chữ thường cho ảnh
   if (bien) {
-    ngam.quai.forEach((q) => ngamItems.push(`<li><b>${q.vi} ${q.loai.toLowerCase()}</b>: ${q.lyDo}</li>`));
+    ngam.quai.forEach((q) => {
+      ngamItems.push(`<li><b>${q.vi} ${q.loai.toLowerCase()}</b>: ${q.lyDo}</li>`);
+      ngamPlain.push(`${q.vi} ${q.loai.toLowerCase()}: ${q.lyDo}`);
+    });
     const hn = ngam.hao.map((x, i) => (x ? `hào ${i + 1} ${chart.hao[i].chi} biến ${chart.hao[i].bien.chi} (${x.toLowerCase()})` : null)).filter(Boolean);
-    if (hn.length) ngamItems.push(`<li><b>Hào biến</b>: ${hn.join("; ")}</li>`);
-    if (!ngamItems.length) ngamItems.push("<li>Không có phản ngâm, không có phục ngâm.</li>");
-    if (ngam.hopXung) ngamItems.push(`<li><b>${ngam.hopXung}</b></li>`);
+    if (hn.length) { ngamItems.push(`<li><b>Hào biến</b>: ${hn.join("; ")}</li>`); ngamPlain.push(`Hào biến: ${hn.join("; ")}`); }
+    if (!ngamItems.length) { ngamItems.push("<li>Không có phản ngâm, không có phục ngâm.</li>"); ngamPlain.push("Không có phản ngâm, không có phục ngâm."); }
+    if (ngam.hopXung) { ngamItems.push(`<li><b>${ngam.hopXung}</b></li>`); ngamPlain.push(ngam.hopXung); }
   }
 
   const tietStart = jdToLocalString(p.tiet.batDauJD, TZ);
@@ -363,14 +369,130 @@ function render(chart, dt, zi) {
     </details>
 
     <div class="result-actions">
+      <button type="button" class="btn primary sm" id="save-img">Lưu ảnh lá quẻ</button>
       <button type="button" class="btn ghost sm" id="copy-text">Sao chép lá quẻ</button>
       ${EMBED ? "" : `<button type="button" class="btn ghost sm" id="copy-link">Chia sẻ link</button>`}
       <span class="hint" id="copy-status" aria-live="polite"></span>
     </div>`;
   resultEl.hidden = false;
   lastText = plainText(chart, ct, ngam, dt, warn, amText);
+
+  // ── Dữ liệu cho ảnh lá quẻ (luchao-image.js chỉ vẽ, không tính) ──
+  const ttImg = (list) => list.map((x) => ({ t: x.replace("Nhật xung · ", ""), k: TOT.has(x) ? "good" : XAU.has(x) ? "bad" : "info" }));
+  const fig = (kind, g, bits) => ({
+    kind, name: g.name, bits: bits.map((b) => b === "Dương"), moving,
+    sub1: [`Cung ${g.palace} (${g.palaceHanh})`, g.stage, g.quaiTinh].filter(Boolean).join(" · "),
+    sub2: `Thế hào ${g.the} · Ứng hào ${g.ung}`,
+  });
+  lastModel = {
+    info: [
+      ["Thời điểm lập quẻ", `${fmtDT(dt)} (giờ Việt Nam${zi ? "" : ", đổi ngày lúc 0h"})`],
+      ["Theo âm lịch", amText],
+      ["Can chi", `giờ ${gz(p.gio)}, ngày ${gz(p.ngay)}, tháng ${gz(p.thang)}, năm ${gz(p.nam)}`, true],
+      ["Tiết khí", tietKhi24(p.sunLongitude)],
+      ["Tuần không", p.tuanKhong.join(", ")],
+      ["Nhật thần", `${p.ngay.chi} – ${CHI_HANH[p.ngay.chi]}`],
+      ["Nguyệt lệnh", `${p.thang.chi} – ${CHI_HANH[p.thang.chi]}`],
+      ["Đào hoa", daoHoa(p.ngay.chi)],
+      ["Dịch mã", dichMa(p.ngay.chi)],
+    ],
+    warn,
+    chu: fig("Quẻ chủ", chu, chuBits),
+    bien: bien ? fig("Quẻ biến", bien, bienBits) : null,
+    ngam: ngamPlain,
+    rows: order.map((i) => {
+      const h = chart.hao[i], c = ct[i].chu, b = ct[i].bien;
+      return {
+        moving: h.dong, lucThu: h.lucThu,
+        chu: {
+          duong: h.am_duong === "Dương", tu: theUng(chu, i), lt: h.lucThan, chi: h.chi, hanh: h.hanh,
+          phuc: h.phucThan ? { text: `${h.phucThan.lucThan} ${h.phucThan.chi} – ${h.phucThan.hanh}`, hanh: h.phucThan.hanh } : null,
+          tt: ttImg(c.trangThai),
+        },
+        bien: b ? {
+          lt: b.lucThan, tu: theUng(bien, i), chi: b.chi, hanh: b.hanh, tt: ttImg(b.trangThai),
+          duong: b.am_duong === "Dương", moving: b.tuHaoDong,
+        } : null,
+      };
+    }),
+    vs: order.map((i) => {
+      const c = ct[i].chu, b = ct[i].bien;
+      const v = (x) => ({ canChi: `${x.can} ${x.chi}`, hanh: x.hanh, vs: x.vuongSuy, tsN: x.tsNgay, tsT: x.tsThang });
+      return { moving: chart.hao[i].dong, chu: v(c), bien: b ? v(b) : null };
+    }),
+    footer: EMBED ? "Lập quẻ Lục Hào online" : `Mở lại lá quẻ: ${location.host}${location.pathname}?h=${lines.join("")}&t=${dtEl.value.slice(0, 16)}${zi ? "" : "&z=0"}`,
+    fileName: `la-que-${slug(chu.name)}${bien ? `-bien-${slug(bien.name)}` : ""}-${dt.y}${pad(dt.m)}${pad(dt.d)}-${pad(dt.h)}${pad(dt.mi)}.png`,
+  };
+
+  $("#save-img").addEventListener("click", saveImage);
   $("#copy-text").addEventListener("click", () => copy(lastText, "Đã chép lá quẻ"));
   $("#copy-link")?.addEventListener("click", () => copy(location.href, "Đã chép link"));
+}
+
+const slug = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D")
+  .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+// ───────── Lưu ảnh lá quẻ ─────────
+let imgUrl = null;
+function imgDialog() {
+  let d = $("#img-dialog");
+  if (d) return d;
+  d = document.createElement("dialog");
+  d.id = "img-dialog";
+  d.className = "img-dialog";
+  d.setAttribute("aria-labelledby", "img-dialog-title");
+  d.innerHTML = `
+    <div class="img-dialog-head">
+      <h2 id="img-dialog-title">Ảnh lá quẻ</h2>
+      <button type="button" class="btn ghost sm" data-close>Đóng</button>
+    </div>
+    <p class="hint" id="img-hint"></p>
+    <div class="img-dialog-actions">
+      <a class="btn primary sm" id="img-download" download>Tải ảnh về máy</a>
+      <button type="button" class="btn ghost sm" id="img-share" hidden>Lưu vào Ảnh / Chia sẻ</button>
+    </div>
+    <div class="img-scroll"><img id="img-preview" alt="Ảnh lá quẻ Lục Hào"></div>`;
+  document.body.appendChild(d);
+  d.querySelector("[data-close]").addEventListener("click", () => d.close());
+  d.addEventListener("click", (e) => { if (e.target === d) d.close(); });
+  return d;
+}
+
+async function saveImage() {
+  if (!lastModel) return;
+  const btn = $("#save-img");
+  btn.disabled = true;
+  btn.textContent = "Đang tạo ảnh…";
+  try {
+    const canvas = drawSheet(lastModel, 2);
+    const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
+    if (!blob) throw new Error("Trình duyệt không tạo được ảnh");
+    if (imgUrl) URL.revokeObjectURL(imgUrl);
+    imgUrl = URL.createObjectURL(blob);
+    const d = imgDialog();
+    d.querySelector("#img-preview").src = imgUrl;
+    const dl = d.querySelector("#img-download");
+    dl.href = imgUrl;
+    dl.download = lastModel.fileName;
+    dl.hidden = EMBED; // khung nhúng chặn tải file
+    const file = new File([blob], lastModel.fileName, { type: "image/png" });
+    const share = d.querySelector("#img-share");
+    const canShare = !EMBED && navigator.canShare && navigator.canShare({ files: [file] });
+    share.hidden = !canShare;
+    share.onclick = async () => {
+      try { await navigator.share({ files: [file], title: "Lá quẻ Lục Hào" }); } catch { /* người dùng huỷ */ }
+    };
+    d.querySelector("#img-hint").textContent = EMBED
+      ? `Ảnh ${canvas.width}×${canvas.height} px. Nhấn giữ (điện thoại) hoặc bấm chuột phải (máy tính) vào ảnh rồi chọn Lưu ảnh.`
+      : `Ảnh PNG ${canvas.width}×${canvas.height} px. Nếu nút tải không chạy (ví dụ trong Zalo, Facebook), hãy nhấn giữ vào ảnh rồi chọn Lưu ảnh.`;
+    if (typeof d.showModal === "function") d.showModal(); else d.setAttribute("open", "");
+  } catch (err) {
+    const st = $("#copy-status");
+    if (st) st.textContent = `Không tạo được ảnh: ${err.message}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Lưu ảnh lá quẻ";
+  }
 }
 
 function guaLine(g) {

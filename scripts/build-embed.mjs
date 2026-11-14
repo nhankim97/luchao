@@ -25,6 +25,7 @@ const js = [
   wrapModule("luchao-core.js", await read("assets/luchao-core.js")),
   wrapModule("luchao-extra.js", await read("assets/luchao-extra.js")),
   wrapModule("luchao-info.js", await read("assets/luchao-info.js")),
+  wrapModule("luchao-image.js", await read("assets/luchao-image.js")),
   wrapModule("app.js", await read("assets/app.js")),
 ].join("\n\n");
 

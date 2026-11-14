@@ -232,6 +232,17 @@ input[type="text"], input[type="datetime-local"] {
 
 .result-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
 
+/* Khung xem ảnh lá quẻ */
+.img-dialog { width: min(960px, calc(100vw - 24px)); max-height: calc(100vh - 24px); padding: 14px; border: 0; border-radius: 12px; background: var(--surface); color: var(--ink); box-shadow: 0 10px 40px rgba(0,0,0,.3); }
+.img-dialog::backdrop { background: rgba(30, 18, 12, .6); }
+.img-dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.img-dialog-head h2 { margin: 0; font-size: 1.1rem; color: var(--brand); }
+.img-dialog .hint { margin: 6px 0 10px; }
+.img-dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.img-dialog-actions a.btn { display: inline-flex; align-items: center; text-decoration: none; }
+.img-scroll { max-height: 70vh; overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: #f3ede4; }
+.img-scroll img { display: block; width: 100%; height: auto; }
+
 
 /* ───── Nội dung SEO ───── */
 .content { margin: 28px 0 8px; max-width: 760px; }
