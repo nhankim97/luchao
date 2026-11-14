@@ -21,6 +21,7 @@
 <meta name="theme-color" content="#7a1f1f">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="modulepreload" href="assets/luchao-core.js">
+<link rel="modulepreload" href="assets/luchao-extra.js">
 <script type="module" src="assets/app.js"></script>
 <script type="application/ld+json">
 {
@@ -49,7 +50,7 @@
     {
       "@type": "Question",
       "name": "Cách nhập hào động trên công cụ này?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Với mỗi hào, chọn O nếu là dương động (ba mặt ngửa, lão dương) hoặc X nếu là âm động (ba mặt sấp, lão âm). Hào động sẽ biến thành hào ngược lại để tạo quẻ biến. Bạn cũng có thể gõ nhanh 6 ký tự từ hào 1 đến hào 6, dùng số 9 cho O và số 6 cho X." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Mỗi hào có bốn nút: Dương, Âm, Dương động và Âm động. Dương động (lão dương) là vạch liền sẽ biến thành vạch đứt; Âm động (lão âm) là vạch đứt sẽ biến thành vạch liền. Trên lá quẻ, hào động được tô đỏ và ghi rõ chữ “Dương động” hoặc “Âm động”, quẻ biến hiện đầy đủ sáu hào bên phải. Bạn cũng có thể gõ nhanh 6 số từ hào 1 đến hào 6: 7 là dương, 8 là âm, 9 là dương động, 6 là âm động." }
     },
     {
       "@type": "Question",
@@ -95,67 +96,67 @@
             <span class="line-label" id="lbl-6">Hào 6</span>
             <button type="button" class="glyph-btn" data-i="5" aria-describedby="lbl-6" aria-label="Hào 6: chưa chọn. Bấm để đổi trạng thái"><span class="glyph-empty">chưa chọn</span></button>
             <div class="seg" role="radiogroup" aria-labelledby="lbl-6">
-              <label title="Dương"><input type="radio" name="hao6" value="7" aria-label="Dương"><b>—</b><span class="txt">Dương</span></label>
-              <label title="Âm"><input type="radio" name="hao6" value="8" aria-label="Âm"><b>- -</b><span class="txt">Âm</span></label>
-              <label title="Dương động"><input type="radio" name="hao6" value="9" aria-label="Dương động"><b>O</b><span class="txt">Động</span></label>
-              <label title="Âm động"><input type="radio" name="hao6" value="6" aria-label="Âm động"><b>X</b><span class="txt">Động</span></label>
+              <label class=""><input type="radio" name="hao6" value="7"><span class="bar mini duong" aria-hidden="true"><i></i></span><span class="txt">Dương</span></label>
+              <label class=""><input type="radio" name="hao6" value="8"><span class="bar mini am" aria-hidden="true"><i></i><i></i></span><span class="txt">Âm</span></label>
+              <label class="is-dong"><input type="radio" name="hao6" value="9"><span class="bar mini duong dong" aria-hidden="true"><i></i></span><span class="txt">Dương động</span></label>
+              <label class="is-dong"><input type="radio" name="hao6" value="6"><span class="bar mini am dong" aria-hidden="true"><i></i><i></i></span><span class="txt">Âm động</span></label>
             </div>
           </div>
           <div class="line-row" data-i="4">
             <span class="line-label" id="lbl-5">Hào 5</span>
             <button type="button" class="glyph-btn" data-i="4" aria-describedby="lbl-5" aria-label="Hào 5: chưa chọn. Bấm để đổi trạng thái"><span class="glyph-empty">chưa chọn</span></button>
             <div class="seg" role="radiogroup" aria-labelledby="lbl-5">
-              <label title="Dương"><input type="radio" name="hao5" value="7" aria-label="Dương"><b>—</b><span class="txt">Dương</span></label>
-              <label title="Âm"><input type="radio" name="hao5" value="8" aria-label="Âm"><b>- -</b><span class="txt">Âm</span></label>
-              <label title="Dương động"><input type="radio" name="hao5" value="9" aria-label="Dương động"><b>O</b><span class="txt">Động</span></label>
-              <label title="Âm động"><input type="radio" name="hao5" value="6" aria-label="Âm động"><b>X</b><span class="txt">Động</span></label>
+              <label class=""><input type="radio" name="hao5" value="7"><span class="bar mini duong" aria-hidden="true"><i></i></span><span class="txt">Dương</span></label>
+              <label class=""><input type="radio" name="hao5" value="8"><span class="bar mini am" aria-hidden="true"><i></i><i></i></span><span class="txt">Âm</span></label>
+              <label class="is-dong"><input type="radio" name="hao5" value="9"><span class="bar mini duong dong" aria-hidden="true"><i></i></span><span class="txt">Dương động</span></label>
+              <label class="is-dong"><input type="radio" name="hao5" value="6"><span class="bar mini am dong" aria-hidden="true"><i></i><i></i></span><span class="txt">Âm động</span></label>
             </div>
           </div>
           <div class="line-row" data-i="3">
             <span class="line-label" id="lbl-4">Hào 4</span>
             <button type="button" class="glyph-btn" data-i="3" aria-describedby="lbl-4" aria-label="Hào 4: chưa chọn. Bấm để đổi trạng thái"><span class="glyph-empty">chưa chọn</span></button>
             <div class="seg" role="radiogroup" aria-labelledby="lbl-4">
-              <label title="Dương"><input type="radio" name="hao4" value="7" aria-label="Dương"><b>—</b><span class="txt">Dương</span></label>
-              <label title="Âm"><input type="radio" name="hao4" value="8" aria-label="Âm"><b>- -</b><span class="txt">Âm</span></label>
-              <label title="Dương động"><input type="radio" name="hao4" value="9" aria-label="Dương động"><b>O</b><span class="txt">Động</span></label>
-              <label title="Âm động"><input type="radio" name="hao4" value="6" aria-label="Âm động"><b>X</b><span class="txt">Động</span></label>
+              <label class=""><input type="radio" name="hao4" value="7"><span class="bar mini duong" aria-hidden="true"><i></i></span><span class="txt">Dương</span></label>
+              <label class=""><input type="radio" name="hao4" value="8"><span class="bar mini am" aria-hidden="true"><i></i><i></i></span><span class="txt">Âm</span></label>
+              <label class="is-dong"><input type="radio" name="hao4" value="9"><span class="bar mini duong dong" aria-hidden="true"><i></i></span><span class="txt">Dương động</span></label>
+              <label class="is-dong"><input type="radio" name="hao4" value="6"><span class="bar mini am dong" aria-hidden="true"><i></i><i></i></span><span class="txt">Âm động</span></label>
             </div>
           </div>
           <div class="line-row" data-i="2">
             <span class="line-label" id="lbl-3">Hào 3</span>
             <button type="button" class="glyph-btn" data-i="2" aria-describedby="lbl-3" aria-label="Hào 3: chưa chọn. Bấm để đổi trạng thái"><span class="glyph-empty">chưa chọn</span></button>
             <div class="seg" role="radiogroup" aria-labelledby="lbl-3">
-              <label title="Dương"><input type="radio" name="hao3" value="7" aria-label="Dương"><b>—</b><span class="txt">Dương</span></label>
-              <label title="Âm"><input type="radio" name="hao3" value="8" aria-label="Âm"><b>- -</b><span class="txt">Âm</span></label>
-              <label title="Dương động"><input type="radio" name="hao3" value="9" aria-label="Dương động"><b>O</b><span class="txt">Động</span></label>
-              <label title="Âm động"><input type="radio" name="hao3" value="6" aria-label="Âm động"><b>X</b><span class="txt">Động</span></label>
+              <label class=""><input type="radio" name="hao3" value="7"><span class="bar mini duong" aria-hidden="true"><i></i></span><span class="txt">Dương</span></label>
+              <label class=""><input type="radio" name="hao3" value="8"><span class="bar mini am" aria-hidden="true"><i></i><i></i></span><span class="txt">Âm</span></label>
+              <label class="is-dong"><input type="radio" name="hao3" value="9"><span class="bar mini duong dong" aria-hidden="true"><i></i></span><span class="txt">Dương động</span></label>
+              <label class="is-dong"><input type="radio" name="hao3" value="6"><span class="bar mini am dong" aria-hidden="true"><i></i><i></i></span><span class="txt">Âm động</span></label>
             </div>
           </div>
           <div class="line-row" data-i="1">
             <span class="line-label" id="lbl-2">Hào 2</span>
             <button type="button" class="glyph-btn" data-i="1" aria-describedby="lbl-2" aria-label="Hào 2: chưa chọn. Bấm để đổi trạng thái"><span class="glyph-empty">chưa chọn</span></button>
             <div class="seg" role="radiogroup" aria-labelledby="lbl-2">
-              <label title="Dương"><input type="radio" name="hao2" value="7" aria-label="Dương"><b>—</b><span class="txt">Dương</span></label>
-              <label title="Âm"><input type="radio" name="hao2" value="8" aria-label="Âm"><b>- -</b><span class="txt">Âm</span></label>
-              <label title="Dương động"><input type="radio" name="hao2" value="9" aria-label="Dương động"><b>O</b><span class="txt">Động</span></label>
-              <label title="Âm động"><input type="radio" name="hao2" value="6" aria-label="Âm động"><b>X</b><span class="txt">Động</span></label>
+              <label class=""><input type="radio" name="hao2" value="7"><span class="bar mini duong" aria-hidden="true"><i></i></span><span class="txt">Dương</span></label>
+              <label class=""><input type="radio" name="hao2" value="8"><span class="bar mini am" aria-hidden="true"><i></i><i></i></span><span class="txt">Âm</span></label>
+              <label class="is-dong"><input type="radio" name="hao2" value="9"><span class="bar mini duong dong" aria-hidden="true"><i></i></span><span class="txt">Dương động</span></label>
+              <label class="is-dong"><input type="radio" name="hao2" value="6"><span class="bar mini am dong" aria-hidden="true"><i></i><i></i></span><span class="txt">Âm động</span></label>
             </div>
           </div>
           <div class="line-row" data-i="0">
             <span class="line-label" id="lbl-1">Hào 1</span>
             <button type="button" class="glyph-btn" data-i="0" aria-describedby="lbl-1" aria-label="Hào 1: chưa chọn. Bấm để đổi trạng thái"><span class="glyph-empty">chưa chọn</span></button>
             <div class="seg" role="radiogroup" aria-labelledby="lbl-1">
-              <label title="Dương"><input type="radio" name="hao1" value="7" aria-label="Dương"><b>—</b><span class="txt">Dương</span></label>
-              <label title="Âm"><input type="radio" name="hao1" value="8" aria-label="Âm"><b>- -</b><span class="txt">Âm</span></label>
-              <label title="Dương động"><input type="radio" name="hao1" value="9" aria-label="Dương động"><b>O</b><span class="txt">Động</span></label>
-              <label title="Âm động"><input type="radio" name="hao1" value="6" aria-label="Âm động"><b>X</b><span class="txt">Động</span></label>
+              <label class=""><input type="radio" name="hao1" value="7"><span class="bar mini duong" aria-hidden="true"><i></i></span><span class="txt">Dương</span></label>
+              <label class=""><input type="radio" name="hao1" value="8"><span class="bar mini am" aria-hidden="true"><i></i><i></i></span><span class="txt">Âm</span></label>
+              <label class="is-dong"><input type="radio" name="hao1" value="9"><span class="bar mini duong dong" aria-hidden="true"><i></i></span><span class="txt">Dương động</span></label>
+              <label class="is-dong"><input type="radio" name="hao1" value="6"><span class="bar mini am dong" aria-hidden="true"><i></i><i></i></span><span class="txt">Âm động</span></label>
             </div>
           </div>
         </div>
       </fieldset>
 
       <div class="quick">
-        <label for="quick-input">Nhập nhanh <span class="hint">(6 ký tự, hào 1 → 6: 7 8 9 6 hoặc — - o x)</span></label>
+        <label for="quick-input">Nhập nhanh <span class="hint">(6 số từ hào 1 → 6: 7 dương, 8 âm, 9 dương động, 6 âm động)</span></label>
         <input id="quick-input" type="text" inputmode="text" autocomplete="off" spellcheck="false" maxlength="12" placeholder="vd. 998788">
       </div>
 
@@ -184,8 +185,8 @@
     <h2>Hướng dẫn lập quẻ Lục Hào từng bước</h2>
     <p>Công cụ này dành cho người đã có sáu hào trong tay, dù bạn gieo bằng ba đồng xu, bằng cỏ thi hay bằng bất kỳ cách nào khác. Việc của bạn chỉ là chép lại kết quả, phần an quẻ để máy làm. Cách làm như sau:</p>
     <ol>
-      <li><strong>Gieo và ghi lại từng hào từ dưới lên.</strong> Lần gieo đầu tiên là hào 1 (hào sơ), lần thứ sáu là hào 6 (hào thượng). Với ba đồng xu, quy ước phổ biến là: một mặt ngửa là dương <code>—</code>, hai mặt ngửa là âm <code>- -</code>, ba mặt ngửa là dương động <code>O</code>, không mặt ngửa nào là âm động <code>X</code>.</li>
-      <li><strong>Chỉnh từng hào trên công cụ.</strong> Mỗi hàng là một hào, hào 6 nằm trên cùng giống như khi nhìn lá quẻ. Bấm vào một trong bốn nút, hoặc bấm thẳng vào hình vạch quẻ để xoay vòng bốn trạng thái. Nếu đã quen, hãy gõ chuỗi sáu ký tự vào ô nhập nhanh, ví dụ <code>998788</code>.</li>
+      <li><strong>Gieo và ghi lại từng hào từ dưới lên.</strong> Lần gieo đầu tiên là hào 1 (hào sơ), lần thứ sáu là hào 6 (hào thượng). Với ba đồng xu, quy ước phổ biến là: một mặt ngửa là dương <code>—</code>, hai mặt ngửa là âm <code>- -</code>, ba mặt ngửa là <strong>dương động</strong>, không mặt ngửa nào là <strong>âm động</strong>. Quy ước mặt ngửa, mặt sấp có thể khác nhau tuỳ thầy, hãy giữ đúng cách bạn đã học.</li>
+      <li><strong>Chỉnh từng hào trên công cụ.</strong> Mỗi hàng là một hào, hào 6 nằm trên cùng giống như khi nhìn lá quẻ. Bấm vào một trong bốn nút <em>Dương</em>, <em>Âm</em>, <em>Dương động</em>, <em>Âm động</em>, hoặc bấm thẳng vào hình vạch quẻ để xoay vòng bốn trạng thái. Nếu đã quen, hãy gõ sáu số vào ô nhập nhanh, ví dụ <code>997888</code>.</li>
       <li><strong>Kiểm tra ngày giờ gieo.</strong> Mặc định là thời điểm hiện tại theo giờ Việt Nam. Nếu bạn gieo từ trước, hãy sửa lại cho đúng, vì can chi ngày và tháng quyết định Lục thú, Tuần không, Nguyệt phá và Nhật xung.</li>
       <li><strong>Bấm “Lập quẻ”.</strong> Lá quẻ hiện ra ngay bên dưới. Bạn có thể sao chép bản chữ để dán vào Facebook, Zalo, hoặc sao chép đường link để người khác mở ra đúng lá quẻ đó.</li>
     </ol>
@@ -214,6 +215,9 @@
     <h3>Tuần không, Nguyệt phá, Nhật xung</h3>
     <p>Tuần không là hai địa chi bị “bỏ trống” trong tuần mười ngày chứa ngày gieo quẻ. Hào gặp Tuần không được đánh dấu <strong>(K)</strong>. Nguyệt phá là hào có địa chi xung với tháng, đánh dấu <strong>(NP)</strong>. Nhật xung là hào bị địa chi ngày xung, đánh dấu <strong>(NX)</strong>. Đây là những dấu hiệu quan trọng khi luận vượng suy của Dụng thần.</p>
 
+    <h3>Phản ngâm và Phục ngâm</h3>
+    <p>Khi quẻ có hào động, công cụ tự xét phản ngâm và phục ngâm giữa quẻ chủ và quẻ biến. Phản ngâm là khi nội quái hoặc ngoại quái động biến ra ba địa chi xung với ba chi cũ, hoặc biến sang quái đối phương vị (như Càn biến Khôn, Càn biến Tốn). Phục ngâm là khi quái động mà địa chi không đổi (như Vô Vọng biến Đại Tráng). Ở cấp từng hào, hào động biến ra chi xung với chính nó là hào phản ngâm, biến ra đúng chi cũ là hào phục ngâm. Công cụ cũng ghi chuyển biến Lục hợp, Lục xung, ví dụ “Lục hợp biến Lục xung”.</p>
+
     <h3>Tứ trụ theo tiết khí</h3>
     <p>Năm đổi tại tiết Lập Xuân, tháng đổi tại mười hai tiết (Lập Xuân, Kinh Trập, Thanh Minh…), không đổi theo mùng 1 âm lịch. Can tháng tính theo phép Ngũ Hổ Độn, can giờ theo Ngũ Thử Độn. Thời điểm giao tiết được tính theo kinh độ Mặt Trời nên có thể lệch vài phút, vì vậy khi giờ gieo rất gần lúc giao tiết, công cụ sẽ nhắc bạn đối chiếu lại tháng.</p>
 
@@ -225,7 +229,7 @@
     <h3>Lục hào là gì?</h3>
     <p>Lục hào (còn gọi là Hỏa Châu Lâm, Văn Vương quái, Nạp Giáp phệ pháp) là phép bói dựa trên 64 quẻ Kinh Dịch. Mỗi quẻ có sáu hào, mỗi hào được gán một địa chi theo phép Nạp Giáp, rồi suy ra Lục thân, Thế Ứng, Lục thú. Người xem quẻ phân tích quan hệ sinh khắc giữa các hào với ngày, tháng gieo quẻ để đoán sự việc.</p>
     <h3>Cách nhập hào động trên công cụ này?</h3>
-    <p>Với mỗi hào, chọn O nếu là dương động (ba mặt ngửa, lão dương) hoặc X nếu là âm động (ba mặt sấp, lão âm). Hào động sẽ biến thành hào ngược lại để tạo quẻ biến. Bạn cũng có thể gõ nhanh 6 ký tự từ hào 1 đến hào 6, dùng số 9 cho O và số 6 cho X.</p>
+    <p>Mỗi hào có bốn nút: Dương, Âm, Dương động và Âm động. Dương động (lão dương) là vạch liền sẽ biến thành vạch đứt; Âm động (lão âm) là vạch đứt sẽ biến thành vạch liền. Trên lá quẻ, hào động được tô đỏ và ghi rõ chữ “Dương động” hoặc “Âm động”, quẻ biến hiện đầy đủ sáu hào bên phải. Bạn cũng có thể gõ nhanh 6 số từ hào 1 đến hào 6: 7 là dương, 8 là âm, 9 là dương động, 6 là âm động.</p>
     <h3>Vì sao tháng tính theo tiết khí mà không theo âm lịch?</h3>
     <p>Trong Lục hào, nguyệt kiến phản ánh khí của mùa, mà khí mùa đổi theo vị trí Mặt Trời, tức là theo tiết khí. Vì vậy tháng Dần bắt đầu từ tiết Lập Xuân, tháng Mão từ tiết Kinh Trập, và năm mới cũng tính từ Lập Xuân chứ không phải mùng 1 Tết âm lịch.</p>
     <h3>Tuần không là gì?</h3>
