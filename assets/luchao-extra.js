@@ -1,18 +1,16 @@
 // luchao-extra.js — Phần bổ sung cho lõi (KHÔNG sửa luchao-core.js):
 // Phản ngâm, Phục ngâm, và chuyển biến Lục hợp / Lục xung giữa quẻ chủ và quẻ biến.
-// Định nghĩa theo Tăng San Bốc Dịch Bình Thích (Vương Hổ Ứng), chương "Phản phục":
-//  - Quái (nội/ngoại) động biến ra ba địa chi đều XUNG với ba chi cũ → quái phản ngâm
-//    (Thăng biến Quan: nội ngoại phản ngâm; Quan biến Khôn: ngoại; Tốn biến Quan: nội).
-//  - Quái động biến sang quái ĐỐI PHƯƠNG VỊ (tiên thiên: Càn–Khôn, Khảm–Ly, Chấn–Tốn, Cấn–Đoài;
-//    hậu thiên: Càn–Tốn, Khảm–Ly, Cấn–Khôn, Chấn–Đoài) → cũng gọi là phản ngâm (Càn biến Khôn, Càn biến Tốn).
-//  - Quái động biến ra ba địa chi GIỐNG HỆT ba chi cũ → quái phục ngâm (Vô Vọng biến Đại Tráng).
+// Chỉ xét theo QUẺ CHỦ → HÀO ĐỘNG → QUẺ BIẾN (so địa chi nạp giáp), theo Tăng San Bốc Dịch Bình Thích,
+// chương "Phản phục":
 //  - Hào động biến ra chi xung chi gốc → hào phản ngâm; ra đúng chi gốc → hào phục ngâm.
+//  - Quái (nội/ngoại) có hào động, biến ra quái mới mà cả ba địa chi đều XUNG ba chi cũ → quái phản ngâm
+//    (Thăng biến Quan: nội ngoại phản ngâm; Quan biến Khôn: ngoại; Tốn biến Quan: nội).
+//  - Quái có hào động, biến ra quái mới mà ba địa chi GIỐNG HỆT → quái phục ngâm (Vô Vọng biến Đại Tráng).
+// KHÔNG dùng quy tắc "hai quái đối phương vị" (Càn–Khôn, Càn–Tốn…), vì quy tắc đó gán phản ngâm
+// cả khi không hào động nào biến ra chi xung; chính Vương Hổ Ứng cũng nói nó ứng nghiệm kém hào biến phản ngâm.
 import { NAP_GIAP, CHI } from "./luchao-core.js";
 
 const xung = (a, b) => (CHI.indexOf(a) + 6) % 12 === CHI.indexOf(b);
-const TIEN_THIEN = [["Càn", "Khôn"], ["Khảm", "Ly"], ["Chấn", "Tốn"], ["Cấn", "Đoài"]];
-const HAU_THIEN = [["Càn", "Tốn"], ["Khảm", "Ly"], ["Cấn", "Khôn"], ["Chấn", "Đoài"]];
-const isPair = (list, a, b) => list.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
 
 /**
  * @param chart kết quả castChart()
@@ -30,20 +28,19 @@ export function phanPhucNgam(chart) {
   });
 
   const parts = [
-    { vi: "Nội quái", k: 0, from: chu.lower, to: bien.lower },
-    { vi: "Ngoại quái", k: 1, from: chu.upper, to: bien.upper },
+    { vi: "Nội quái", k: 0, idx: [0, 1, 2], from: chu.lower, to: bien.lower },
+    { vi: "Ngoại quái", k: 1, idx: [3, 4, 5], from: chu.upper, to: bien.upper },
   ];
   for (const p of parts) {
-    if (p.from === p.to) continue; // quái này không động
+    const dong = p.idx.filter((i) => chart.hao[i].dong);
+    if (!dong.length) continue; // quái này không có hào động
     const a = NAP_GIAP[p.from][p.k], b = NAP_GIAP[p.to][p.k];
-    const route = `${p.from} biến ${p.to}`;
+    const haoDong = dong.map((i) => `hào ${i + 1} ${chart.hao[i].chi}→${chart.hao[i].bien.chi}`).join(", ");
+    const route = `${p.from} biến ${p.to} (hào động: ${haoDong})`;
     if (a.every((c, j) => c === b[j])) {
-      out.quai.push({ vi: p.vi, loai: "Phục ngâm", lyDo: `${route}, địa chi giữ nguyên ${a.join(" ")}` });
+      out.quai.push({ vi: p.vi, loai: "Phục ngâm", lyDo: `${route}, ba địa chi giữ nguyên ${a.join(" ")}` });
     } else if (a.every((c, j) => xung(c, b[j]))) {
-      out.quai.push({ vi: p.vi, loai: "Phản ngâm", lyDo: `${route}, địa chi xung: ${a.map((c, j) => `${c}–${b[j]}`).join(", ")}` });
-    } else if (isPair(TIEN_THIEN, p.from, p.to) || isPair(HAU_THIEN, p.from, p.to)) {
-      const kieu = isPair(TIEN_THIEN, p.from, p.to) ? "tiên thiên" : "hậu thiên";
-      out.quai.push({ vi: p.vi, loai: "Phản ngâm", lyDo: `${route}, hai quái đối phương vị ${kieu}` });
+      out.quai.push({ vi: p.vi, loai: "Phản ngâm", lyDo: `${route}, ba địa chi đều xung: ${a.map((c, j) => `${c}–${b[j]}`).join(", ")}` });
     }
   }
 
