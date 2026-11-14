@@ -12,7 +12,7 @@
   --the: #b3261e;
   --ung: #1d5fa8;
   --kim: #5f6672;
-  --moc: #2e7d32;
+  --moc: #286e2c;
   --thuy: #1565c0;
   --hoa: #c62828;
   --tho: #75590f;
@@ -162,12 +162,19 @@ input[type="text"], input[type="datetime-local"] {
 .ngam ul { margin: 0; padding-left: 1.1em; font-size: .92rem; }
 
 /* Bảng */
+.stack { display: grid; gap: 12px; }
+.only-narrow { display: none; }
+.sheet .split { border-left: 3px solid var(--brand); }
+.sheet tr.grp th { font-size: .82rem; font-weight: 700; color: var(--brand); background: var(--accent-soft); text-align: left; padding: 7px 10px; }
+.sheet th, .sheet td { white-space: nowrap; }
+.sheet .tt { white-space: normal; min-width: 4.5em; }
+.sheet .tt .chip { white-space: nowrap; }
 .pair { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px; align-items: start; }
 .pair.single { grid-template-columns: minmax(0, 1fr); }
 .tbl-wrap { overflow-x: auto; max-width: 100%; border: 1px solid var(--line); border-radius: 8px; }
-.sheet { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.sheet { width: 100%; border-collapse: collapse; font-size: .84rem; }
 .sheet caption { text-align: left; padding: 8px 10px; font-weight: 700; color: var(--brand); background: var(--accent-soft); }
-.sheet th, .sheet td { padding: 7px 6px; border-top: 1px solid var(--line); text-align: center; vertical-align: middle; }
+.sheet th, .sheet td { padding: 6px 4px; border-top: 1px solid var(--line); text-align: center; vertical-align: middle; }
 .sheet thead th { font-size: .78rem; color: var(--muted); font-weight: 600; background: #fdf8f1; }
 .th-sub { font-weight: 400; font-size: .72rem; }
 .sheet tbody th { font-weight: 600; }
@@ -177,8 +184,8 @@ input[type="text"], input[type="datetime-local"] {
 .sheet .lt, .sheet .cc { white-space: nowrap; }
 .sheet .tt { min-width: 5.5em; }
 .sheet .tt .chip { margin: 1px 2px; }
-.col-bar { width: 64px; }
-.col-bar .bar { width: 52px; height: 10px; gap: 8px; }
+.col-bar { width: 50px; }
+.col-bar .bar { width: 42px; height: 9px; gap: 7px; }
 .tu-the, .tu-ung, .tu-soft { font-weight: 700; font-size: .85rem; white-space: nowrap; }
 .tu-the { color: var(--the); }
 .tu-ung { color: var(--ung); }
@@ -238,8 +245,12 @@ input[type="text"], input[type="datetime-local"] {
 .site-footer { border-top: 1px solid var(--line); margin-top: 24px; padding: 16px 0 28px; color: var(--muted); font-size: .88rem; }
 
 /* ───── Điện thoại ───── */
-@media (max-width: 900px) {
+@media (max-width: 1040px) {
   .pair { grid-template-columns: minmax(0, 1fr); }
+  .only-wide { display: none; }
+  .only-narrow { display: grid; }
+  .sheet .tt { white-space: normal; }
+  .sheet.single th, .sheet.single td { white-space: normal; }
 }
 @media (max-width: 640px) {
   .line-row { grid-template-columns: 70px 1fr; grid-template-areas: "lbl seg" "btn seg"; gap: 4px 8px; }
@@ -275,8 +286,12 @@ input[type="text"], input[type="datetime-local"] {
   .chip { font-size: .68rem; padding: 0 6px; }
   .sheet .tt { min-width: 0; }
   .sheet .tt .chip { white-space: normal; }
-  .sheet .lt, .sheet .cc { white-space: normal; }
+  .sheet .lt, .sheet .cc, .sheet .phuc, .sheet .lucthu, .sheet thead th { white-space: normal; }
   .hc-main { font-size: .88rem; }
+  .sheet.single { font-size: .74rem; }
+  .sheet.single th, .sheet.single td { padding: 5px 2px; }
+  .sheet.single .col-bar { width: 34px; }
+  .sheet.single .col-bar .bar { width: 30px; gap: 5px; }
 }
 
 @media print {

@@ -205,45 +205,72 @@ function render(chart, dt, zi) {
   const order = [5, 4, 3, 2, 1, 0];
   const lucThuCol = (i) => `<td class="lucthu">${chart.hao[i].lucThu}</td>`;
 
-  // ── Bảng an quẻ (quẻ chủ | quẻ biến) ──
-  const chuRows = order.map((i) => {
+  // ── Bảng an quẻ ──
+  // Màn rộng: MỘT bảng, mỗi hàng là một hào (quẻ chủ bên trái, quẻ biến bên phải) nên không bao giờ lệch dòng.
+  // Màn hẹp: hai bảng xếp trên dưới.
+  // Trong bảng ghi gọn: "Ám động" / "Nhật phá" (phần tổng hợp từng hào và phần giải thích ghi rõ là do Nhật xung).
+  const ttGon = (list) => list.map((x) => chipTT(x).replace(/Nhật xung · /, "")).join("") || "–";
+  const chuCells = (i, withThu) => {
     const h = chart.hao[i], c = ct[i].chu, tu = theUng(chu, i);
-    return `<tr class="${h.dong ? "moving" : ""}">
-      <td class="col-bar">${barHTML(h.am_duong === "Dương", { dong: h.dong })}<span class="sr-only">Hào ${i + 1}${h.dong ? `, ${h.am_duong.toLowerCase()} động` : ""}</span></td>
+    return `<td class="col-bar">${barHTML(h.am_duong === "Dương", { dong: h.dong })}<span class="sr-only">Hào ${i + 1}${h.dong ? `, ${h.am_duong.toLowerCase()} động` : ""}</span></td>
       <td class="tu">${tu ? `<span class="tu-${tu === "Thế" ? "the" : "ung"}">${tu}</span>` : ""}</td>
       <th scope="row" class="lt">${h.lucThan}</th>
       <td class="cc">${hanhSpan(h.chi, h.hanh)}</td>
-      <td class="phuc">${h.phucThan ? `${h.phucThan.lucThan}<br>${hanhSpan(h.phucThan.chi, h.phucThan.hanh)}` : "–"}</td>
-      <td class="tt">${c.trangThai.map(chipTT).join("") || "–"}</td>
-      ${bien ? "" : lucThuCol(i)}
-    </tr>`;
-  }).join("");
-  const bienRows = bien ? order.map((i) => {
+      <td class="phuc">${h.phucThan ? `${h.phucThan.lucThan} ${hanhSpan(h.phucThan.chi, h.phucThan.hanh)}` : "–"}</td>
+      <td class="tt">${ttGon(c.trangThai)}</td>
+      ${withThu ? lucThuCol(i) : ""}`;
+  };
+  const bienCells = (i, first) => {
     const b = ct[i].bien, bf = chart.bienFull[i], tu = theUng(bien, i);
-    return `<tr class="${b.tuHaoDong ? "moving" : ""}">
-      <th scope="row" class="lt">${bf.lucThan}${tu ? ` <span class="tu-soft">${tu}</span>` : ""}</th>
+    return `<td class="lt${first ? " split" : ""}">${bf.lucThan}${tu ? ` <span class="tu-soft">${tu}</span>` : ""}</td>
       <td class="cc">${hanhSpan(bf.chi, bf.hanh)}</td>
       ${lucThuCol(i)}
-      <td class="tt">${b.trangThai.map(chipTT).join("") || "–"}</td>
-      <td class="col-bar">${barHTML(bf.am_duong === "Dương", { dong: b.tuHaoDong })}</td>
-    </tr>`;
-  }).join("") : "";
+      <td class="tt">${ttGon(b.trangThai)}</td>
+      <td class="col-bar">${barHTML(bf.am_duong === "Dương", { dong: b.tuHaoDong })}</td>`;
+  };
+  const rowCls = (i) => (chart.hao[i].dong ? "moving" : "");
+  const headChu = `<th scope="col">Hào</th><th scope="col">Thế / Ứng</th><th scope="col">Lục thân</th><th scope="col">Can chi</th><th scope="col">Phục thần</th><th scope="col">Trạng thái</th>`;
+  const headBien = (first) => `<th scope="col"${first ? ` class="split"` : ""}>Lục thân</th><th scope="col">Can chi</th><th scope="col">Lục thú</th><th scope="col">Trạng thái</th><th scope="col">Hào</th>`;
+  const mainMerged = `<div class="tbl-wrap"><table class="sheet main-table${bien ? "" : " single"}">
+    <caption class="sr-only">Bảng an quẻ, hào 6 ở trên</caption>
+    <thead>
+      <tr class="grp"><th scope="colgroup" colspan="${bien ? 6 : 7}">Quẻ chủ: ${chu.name}</th>${bien ? `<th scope="colgroup" colspan="5" class="split">Quẻ biến: ${bien.name}</th>` : ""}</tr>
+      <tr>${headChu}${bien ? headBien(true) : `<th scope="col">Lục thú</th>`}</tr>
+    </thead>
+    <tbody>${order.map((i) => `<tr class="${rowCls(i)}">${chuCells(i, !bien)}${bien ? bienCells(i, true) : ""}</tr>`).join("")}</tbody>
+  </table></div>`;
+  const mainStacked = bien ? `<div class="tbl-wrap"><table class="sheet main-table">
+      <caption>Quẻ chủ: ${chu.name}</caption>
+      <thead><tr>${headChu}</tr></thead>
+      <tbody>${order.map((i) => `<tr class="${rowCls(i)}">${chuCells(i, false)}</tr>`).join("")}</tbody>
+    </table></div>
+    <div class="tbl-wrap"><table class="sheet main-table">
+      <caption>Quẻ biến: ${bien.name}</caption>
+      <thead><tr>${headBien(false)}</tr></thead>
+      <tbody>${order.map((i) => `<tr class="${rowCls(i)}">${bienCells(i, false).replace(/^<td class="lt">/, '<th scope="row" class="lt">').replace(/<\/td>/, "</th>")}</tr>`).join("")}</tbody>
+    </table></div>` : "";
 
-  // ── Vượng suy, trường sinh ──
-  const vsRows = (side) => order.map((i) => {
+  // ── Vượng suy, trường sinh (cùng cách: một bảng khi màn rộng) ──
+  const vsCells = (i, side, first) => {
     const x = ct[i][side];
-    const dong = side === "chu" ? chart.hao[i].dong : x.tuHaoDong;
-    return `<tr class="${dong ? "moving" : ""}">
-      <th scope="row"><span class="h-${x.hanh}">${x.can} ${x.chi}</span></th>
-      <td class="vs vs-${x.vuongSuy}">${x.vuongSuy}</td>
-      <td>${x.tsNgay}</td>
-      <td>${x.tsThang}</td>
-    </tr>`;
-  }).join("");
-  const vsTable = (side, title) => `<div class="tbl-wrap"><table class="sheet vs-table">
-    <caption>${title}</caption>
-    <thead><tr><th scope="col">Hào</th><th scope="col">Vượng suy<br><span class="th-sub">theo tháng</span></th><th scope="col">Trường sinh<br><span class="th-sub">theo ngày</span></th><th scope="col">Trường sinh<br><span class="th-sub">theo tháng</span></th></tr></thead>
-    <tbody>${vsRows(side)}</tbody></table></div>`;
+    const tag = side === "chu" ? "th" : "td";
+    return `<${tag}${tag === "th" ? ` scope="row"` : ""}${first ? ` class="split"` : ""}><span class="h-${x.hanh}">${x.can} ${x.chi}</span></${tag}>
+      <td class="vs vs-${x.vuongSuy}">${x.vuongSuy}</td><td>${x.tsNgay}</td><td>${x.tsThang}</td>`;
+  };
+  const vsHead = (first) => `<th scope="col"${first ? ` class="split"` : ""}>Hào</th><th scope="col">Vượng suy<br><span class="th-sub">theo tháng</span></th><th scope="col">Trường sinh<br><span class="th-sub">theo ngày</span></th><th scope="col">Trường sinh<br><span class="th-sub">theo tháng</span></th>`;
+  const vsMerged = `<div class="tbl-wrap"><table class="sheet vs-table">
+    <caption class="sr-only">Vượng suy và trường sinh, hào 6 ở trên</caption>
+    <thead>
+      <tr class="grp"><th scope="colgroup" colspan="4">Quẻ chủ: ${chu.name}</th>${bien ? `<th scope="colgroup" colspan="4" class="split">Quẻ biến: ${bien.name}</th>` : ""}</tr>
+      <tr>${vsHead(false)}${bien ? vsHead(true) : ""}</tr>
+    </thead>
+    <tbody>${order.map((i) => `<tr class="${rowCls(i)}">${vsCells(i, "chu", false)}${bien ? vsCells(i, "bien", true) : ""}</tr>`).join("")}</tbody>
+  </table></div>`;
+  const vsStacked = bien ? ["chu", "bien"].map((side) => `<div class="tbl-wrap"><table class="sheet vs-table">
+      <caption>${side === "chu" ? `Quẻ chủ: ${chu.name}` : `Quẻ biến: ${bien.name}`}</caption>
+      <thead><tr>${vsHead(false)}</tr></thead>
+      <tbody>${order.map((i) => `<tr class="${rowCls(i)}">${vsCells(i, side, false).replace(/^<td>/, '<th scope="row">').replace(/<\/td>/, "</th>")}</tr>`).join("")}</tbody>
+    </table></div>`).join("") : "";
 
   // ── Tổng hợp theo từng hào ──
   const cards = order.map((i) => {
@@ -309,29 +336,12 @@ function render(chart, dt, zi) {
     ${bien ? `<div class="ngam"><h3>Phản ngâm · Phục ngâm · Lục hợp / Lục xung</h3><ul>${ngamItems.join("")}</ul></div>` : ""}
 
     <h3 class="sec">Bảng an quẻ</h3>
-    <div class="pair${bien ? "" : " single"}">
-      <div class="tbl-wrap"><table class="sheet main-table">
-        <caption>Quẻ chủ: ${chu.name}</caption>
-        <thead><tr>
-          <th scope="col">Hào</th><th scope="col">Thế / Ứng</th><th scope="col">Lục thân</th><th scope="col">Can chi</th>
-          <th scope="col">Phục thần</th><th scope="col">Trạng thái</th>${bien ? "" : `<th scope="col">Lục thú</th>`}
-        </tr></thead>
-        <tbody>${chuRows}</tbody>
-      </table></div>
-      ${bien ? `<div class="tbl-wrap"><table class="sheet main-table">
-        <caption>Quẻ biến: ${bien.name}</caption>
-        <thead><tr>
-          <th scope="col">Lục thân</th><th scope="col">Can chi</th><th scope="col">Lục thú</th><th scope="col">Trạng thái</th><th scope="col">Hào</th>
-        </tr></thead>
-        <tbody>${bienRows}</tbody>
-      </table></div>` : ""}
-    </div>
+    <div class="${bien ? "only-wide" : ""}">${mainMerged}</div>
+    ${bien ? `<div class="only-narrow stack">${mainStacked}</div>` : ""}
 
     <h3 class="sec">Vượng suy và trường sinh</h3>
-    <div class="pair${bien ? "" : " single"}">
-      ${vsTable("chu", `Quẻ chủ: ${chu.name}`)}
-      ${bien ? vsTable("bien", `Quẻ biến: ${bien.name}`) : ""}
-    </div>
+    <div class="${bien ? "only-wide" : ""}">${vsMerged}</div>
+    ${bien ? `<div class="only-narrow stack">${vsStacked}</div>` : ""}
 
     <h3 class="sec">Tổng hợp theo từng hào</h3>
     <div class="hc-head${bien ? "" : " single"}" aria-hidden="true"><span>Hào</span><span>Quẻ chủ</span>${bien ? "<span>Quẻ biến</span>" : ""}</div>
