@@ -171,3 +171,9 @@ export function amLich(dd, mm, yy, tz = 7) {
   return { ngay, thang, nam, nhuan };
 }
 export const canChiNam = (y) => `${CAN[((y - 4) % 10 + 10) % 10]} ${CHI[((y - 4) % 12 + 12) % 12]}`;
+// Can chi tháng âm lịch (chỉ để hiển thị; tháng dùng để luận vẫn theo tiết khí).
+// Ngũ Hổ Độn theo can năm âm lịch; tháng nhuận lấy can chi của tháng chính.
+export const canChiThangAm = (thang, namAm) => {
+  const canNam = ((namAm - 4) % 10 + 10) % 10;
+  return `${CAN[((canNam % 5) * 2 + 2 + thang - 1) % 10]} ${CHI[(thang + 1) % 12]}`;
+};

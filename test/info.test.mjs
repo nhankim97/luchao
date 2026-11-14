@@ -2,7 +2,7 @@
 // Thuần Khảm biến Sơn Phong Cổ, 01/08/2026 08:39 (âm lịch giờ Thìn 19/6/2026).
 import assert from "node:assert/strict";
 import { castChart } from "../assets/luchao-core.js";
-import { chiTietHao, amLich, tietKhi24, napCan, canChiNam } from "../assets/luchao-info.js";
+import { chiTietHao, amLich, tietKhi24, napCan, canChiNam, canChiThangAm } from "../assets/luchao-info.js";
 
 let pass = 0;
 const ok = (name, fn) => { fn(); pass++; console.log("✔", name); };
@@ -23,6 +23,13 @@ ok("Âm lịch 01/08/2026 = 19/6/2026; Tết 2026 = 17/02/2026; tháng 6 nhuận
   assert.deepEqual(amLich(16, 2, 2026), { ngay: 29, thang: 12, nam: 2025, nhuan: false });
   assert.deepEqual(amLich(25, 7, 2025), { ngay: 1, thang: 6, nam: 2025, nhuan: true });
   assert.equal(canChiNam(2026), "Bính Ngọ");
+});
+ok("Can chi tháng âm lịch (Ngũ Hổ Độn theo năm âm)", () => {
+  assert.equal(canChiThangAm(6, 2026), "Ất Mùi");   // ảnh simkinhdich 19/6/2026
+  assert.equal(canChiThangAm(9, 2026), "Mậu Tuất");  // ca 1: 30/9/2026
+  assert.equal(canChiThangAm(1, 2026), "Canh Dần");
+  assert.equal(canChiThangAm(12, 2025), "Kỷ Sửu");   // Ất Tỵ
+  assert.equal(canChiThangAm(6, 2025), "Quý Mùi");   // tháng 6 nhuận cùng can chi tháng 6
 });
 ok("Tiết khí 24: Đại Thử", () => assert.equal(tietKhi24(c.pillars.sunLongitude), "Đại Thử"));
 ok("Nạp can: Khảm toàn Mậu; Cổ ngoại Bính, nội Tân", () => {

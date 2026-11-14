@@ -3,7 +3,7 @@
 // nạp can, vượng suy, trường sinh, Đào hoa, Dịch mã, âm lịch trong luchao-info.js.
 import { castChart, solarTermJD, jdToLocalString, CHI_HANH } from "./luchao-core.js";
 import { phanPhucNgam } from "./luchao-extra.js";
-import { chiTietHao, amLich, canChiNam, tietKhi24, daoHoa, dichMa } from "./luchao-info.js";
+import { chiTietHao, amLich, canChiNam, canChiThangAm, tietKhi24, daoHoa, dichMa } from "./luchao-info.js";
 import { drawSheet } from "./luchao-image.js";
 
 const TZ = 7;
@@ -316,14 +316,15 @@ function render(chart, dt, zi) {
   }
 
   const tietStart = jdToLocalString(p.tiet.batDauJD, TZ);
-  const amText = `giờ ${p.gio.chi}, ngày ${al.ngay} tháng ${al.thang}${al.nhuan ? " nhuận" : ""} năm ${canChiNam(al.nam)}`;
+  const thangAm = canChiThangAm(al.thang, al.nam);
+  const amText = `giờ ${p.gio.chi}, ngày ${al.ngay} tháng ${al.thang}${al.nhuan ? " nhuận" : ""} (${thangAm}) năm ${canChiNam(al.nam)}`;
 
   resultEl.innerHTML = `
     <h2 class="sheet-title">Lá quẻ Lục Hào</h2>
     <dl class="info-grid">
       <div><dt>Thời điểm lập quẻ</dt><dd>${fmtDT(dt)} <span class="hint">(giờ Việt Nam${zi ? "" : ", đổi ngày lúc 0h"})</span></dd></div>
       <div><dt>Theo âm lịch</dt><dd>${amText}</dd></div>
-      <div class="wide"><dt>Can chi</dt><dd>giờ <b>${gz(p.gio)}</b>, ngày <b>${gz(p.ngay)}</b>, tháng <b>${gz(p.thang)}</b>, năm <b>${gz(p.nam)}</b></dd></div>
+      <div class="wide"><dt>Can chi</dt><dd>giờ <b>${gz(p.gio)}</b>, ngày <b>${gz(p.ngay)}</b>, tháng <b>${gz(p.thang)}</b> <span class="hint">(theo tiết khí)</span>, năm <b>${gz(p.nam)}</b></dd></div>
       <div><dt>Tiết khí</dt><dd><b>${tietKhi24(p.sunLongitude)}</b> <span class="hint">(tháng ${p.thang.chi} tính từ tiết ${p.tiet.ten}, ${tietStart})</span></dd></div>
       <div><dt>Tuần không</dt><dd><b>${p.tuanKhong.join(", ")}</b></dd></div>
       <div><dt>Nhật thần</dt><dd><b class="h-${CHI_HANH[p.ngay.chi]}">${p.ngay.chi} – ${CHI_HANH[p.ngay.chi]}</b></dd></div>
@@ -388,7 +389,7 @@ function render(chart, dt, zi) {
     info: [
       ["Thời điểm lập quẻ", `${fmtDT(dt)} (giờ Việt Nam${zi ? "" : ", đổi ngày lúc 0h"})`],
       ["Theo âm lịch", amText],
-      ["Can chi", `giờ ${gz(p.gio)}, ngày ${gz(p.ngay)}, tháng ${gz(p.thang)}, năm ${gz(p.nam)}`, true],
+      ["Can chi", `giờ ${gz(p.gio)}, ngày ${gz(p.ngay)}, tháng ${gz(p.thang)} (theo tiết khí), năm ${gz(p.nam)}`, true],
       ["Tiết khí", tietKhi24(p.sunLongitude)],
       ["Tuần không", p.tuanKhong.join(", ")],
       ["Nhật thần", `${p.ngay.chi} – ${CHI_HANH[p.ngay.chi]}`],
@@ -505,7 +506,7 @@ function plainText(chart, ct, ngam, dt, warn, amText) {
   const out = [];
   out.push("LÁ QUẺ LỤC HÀO");
   out.push(`Thời điểm: ${fmtDT(dt)} (giờ VN) · Âm lịch: ${amText}`);
-  out.push(`Can chi: giờ ${gz(p.gio)}, ngày ${gz(p.ngay)}, tháng ${gz(p.thang)}, năm ${gz(p.nam)}`);
+  out.push(`Can chi: giờ ${gz(p.gio)}, ngày ${gz(p.ngay)}, tháng ${gz(p.thang)} (theo tiết khí), năm ${gz(p.nam)}`);
   out.push(`Tiết khí: ${tietKhi24(p.sunLongitude)} · Tuần không: ${p.tuanKhong.join(", ")} · Nhật thần: ${p.ngay.chi}-${CHI_HANH[p.ngay.chi]} · Nguyệt lệnh: ${p.thang.chi}-${CHI_HANH[p.thang.chi]}`);
   out.push(`Đào hoa: ${daoHoa(p.ngay.chi)} · Dịch mã: ${dichMa(p.ngay.chi)}`);
   if (warn) out.push("Lưu ý: gần giờ giao tiết, hãy đối chiếu tháng.");
