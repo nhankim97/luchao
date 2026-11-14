@@ -1,0 +1,6 @@
+# Sách có bản quyền — không bao giờ đưa vào repo
+sach/
+text/
+*.pdf
+node_modules/
+.lighthouse/
