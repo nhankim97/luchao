@@ -23,4 +23,6 @@ node scripts/set-domain.mjs luchao.pages.dev
 
 Deploy: Cloudflare Pages hoặc GitHub Pages, build command để trống, output directory là thư mục gốc.
 
+Bản một file (để đăng ở nơi không tải được JS riêng, ví dụ Artifact): `node scripts/build-embed.mjs` → `dist/luchao-embed.html`. Bản này dùng link `#q-997888-202611081418`.
+
 `scripts/og-image.html` là nguồn của `og-image.png` (chụp bằng Chrome headless 1200×630).

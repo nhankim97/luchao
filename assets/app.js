@@ -4,6 +4,8 @@ import { castChart, solarTermJD, jdToLocalString, CHI_HANH } from "./luchao-core
 import { phanPhucNgam } from "./luchao-extra.js";
 
 const TZ = 7;
+// true khi chạy trong bản đóng gói một file (scripts/build-embed.mjs)
+const EMBED = typeof window !== "undefined" && window.__LUCHAO_EMBED__ === true;
 const STATES = {
   7: { label: "Dương", duong: true, dong: false },
   8: { label: "Âm", duong: false, dong: false },
@@ -136,8 +138,12 @@ function cast(scroll) {
   const chart = castChart([...lines], dt, { tz: TZ, ziHourNextDay: zi });
   const ngam = phanPhucNgam(chart);
   // Ghép tay để giữ dấu ":" dễ đọc: ?h=997888&t=2026-11-08T14:18
-  const q = `?h=${lines.join("")}&t=${dtEl.value.slice(0, 16)}${zi ? "" : "&z=0"}`;
-  history.replaceState(null, "", location.pathname + q);
+  // Bản nhúng (artifact) chỉ giữ được #hash dạng chữ-số-gạch: #q-997888-202611081418[-z0]
+  const t = dtEl.value.slice(0, 16);
+  const next = EMBED
+    ? `#q-${lines.join("")}-${t.replace(/\D/g, "")}${zi ? "" : "-z0"}`
+    : `${location.pathname}?h=${lines.join("")}&t=${t}${zi ? "" : "&z=0"}`;
+  try { history.replaceState(null, "", next); } catch { /* khung nhúng có thể chặn */ }
   render(chart, ngam, dt);
   if (scroll) resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -261,13 +267,13 @@ function render(chart, ngam, dt) {
     </p>
     <div class="result-actions">
       <button type="button" class="btn ghost sm" id="copy-text">Sao chép lá quẻ</button>
-      <button type="button" class="btn ghost sm" id="copy-link">Chia sẻ link</button>
+      ${EMBED ? "" : `<button type="button" class="btn ghost sm" id="copy-link">Chia sẻ link</button>`}
       <span class="hint" id="copy-status" aria-live="polite"></span>
     </div>`;
   resultEl.hidden = false;
   lastText = plainText(chart, ngam, dt, warn);
   $("#copy-text").addEventListener("click", () => copy(lastText, "Đã chép lá quẻ"));
-  $("#copy-link").addEventListener("click", () => copy(location.href, "Đã chép link"));
+  $("#copy-link")?.addEventListener("click", () => copy(location.href, "Đã chép link"));
 }
 
 function guaLine(g) {
@@ -307,8 +313,7 @@ function plainText(chart, ngam, dt, warn) {
     }
     out.push((col(h.lucThu, 11) + col(phuc, 18) + col(main, 22) + col(bar, 4) + col(tu, 4) + col(dong, 11) + bv).trimEnd());
   }
-  out.push("");
-  out.push(location.href);
+  if (!EMBED) { out.push(""); out.push(location.href); }
   return out.join("\n");
 }
 
@@ -330,10 +335,13 @@ async function copy(text, okMsg) {
 function init() {
   bindRows();
   const q = new URLSearchParams(location.search);
-  const h = q.get("h");
-  const t = q.get("t");
+  let h = q.get("h");
+  let t = q.get("t");
+  let z = q.get("z");
+  const hm = /^#q-([6789]{6})-(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(-z0)?$/.exec(location.hash);
+  if (!h && hm) { h = hm[1]; t = `${hm[2]}-${hm[3]}-${hm[4]}T${hm[5]}:${hm[6]}`; z = hm[7] ? "0" : null; }
   dtEl.value = t && parseDT(t) ? t.slice(0, 16) : nowVN();
-  ziEl.checked = q.get("z") !== "0";
+  ziEl.checked = z !== "0";
   const valid = h && /^[6789]{6}$/.test(h);
   if (valid) [...h].forEach((c, i) => { lines[i] = Number(c); });
   syncUI();
