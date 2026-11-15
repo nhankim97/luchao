@@ -72,8 +72,8 @@ function bar(g, ctx, cx, cy, w, h, duong, color) {
 
 // Xếp các nhãn (pill) trong ô rộng cw; trả về chiều cao cần
 function pills(g, list, x, cy, cw, draw) {
-  const PH = 21, GAP = 4, PAD = 6;
-  g.font(F(13, 600));
+  const PH = 18, GAP = 4, PAD = 5;
+  g.font(F(11, 600));
   const rows = [[]];
   let rowW = 0;
   for (const p of list) {
