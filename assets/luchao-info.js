@@ -57,6 +57,8 @@ const HAO_TEN = ["Hào Sơ", "Hào Nhị", "Hào Tam", "Hào Tứ", "Hào Ngũ",
  * Thông tin bổ sung cho từng hào (index 0 = hào 1).
  * Hào tĩnh bị Nhật xung: vượng/tướng → "Ám động", hưu/tù/tử → "Nhật phá"
  * (Tăng San Bốc Dịch Bình Thích, chương 23 "Ám động").
+ * Hào động: hào biến ghi thêm "Biến tử / Biến mộ / Biến tuyệt" (trường sinh của hành hào động tại chi biến)
+ * và "Biến không" thay cho "Tuần không".
  */
 export function chiTietHao(chart) {
   const p = chart.pillars;
@@ -88,6 +90,13 @@ export function chiTietHao(chart) {
     if (chart.bienFull) {
       const bf = chart.bienFull[i];
       bien = { ...info(bf.chi, canBien[i], null), lucThan: bf.lucThan, am_duong: bf.am_duong, tuHaoDong: h.dong, ngam: ngam.hao[i] };
+      if (h.dong) {
+        // Hào động biến ra Tử / Mộ / Tuyệt (xét theo ngũ hành của hào động) hoặc biến vào Tuần không
+        const ts = truongSinh(chu.hanh, bf.chi);
+        const them = ["Tử", "Mộ", "Tuyệt"].includes(ts) ? ["Biến " + ts.toLowerCase()] : [];
+        if (bien.trangThai.includes("Tuần không")) them.push("Biến không");
+        bien.trangThai = [...them, ...bien.trangThai.filter((x) => x !== "Tuần không")];
+      }
     }
     return { ten: HAO_TEN[i], viTri: i + 1, chu, bien };
   });

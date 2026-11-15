@@ -72,8 +72,8 @@ function bar(g, ctx, cx, cy, w, h, duong, color) {
 
 // Xếp các nhãn (pill) trong ô rộng cw; trả về chiều cao cần
 function pills(g, list, x, cy, cw, draw) {
-  const PH = 24, GAP = 4, PAD = 9;
-  g.font(F(14, 600));
+  const PH = 21, GAP = 4, PAD = 6;
+  g.font(F(13, 600));
   const rows = [[]];
   let rowW = 0;
   for (const p of list) {
@@ -90,7 +90,7 @@ function pills(g, list, x, cy, cw, draw) {
       let px = x + (cw - tw) / 2;
       for (const p of row) {
         const [ink, border, bg] = C.pill[p.k] || C.pill.info;
-        g.box(px, y, p.pw, PH, { fill: bg, stroke: border, r: PH / 2 });
+        g.box(px, y, p.pw, PH, { fill: bg, stroke: border, r: 3 });
         g.text(p.t, px + p.pw / 2, y + PH / 2 + 1, ink, "center");
         px += p.pw + GAP;
       }

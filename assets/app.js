@@ -171,7 +171,7 @@ function lunarOf(dt, zi) {
 const gz = (x) => `${x.can} ${x.chi}`;
 const theUng = (g, i) => (g.the === i + 1 ? "Thế" : g.ung === i + 1 ? "Ứng" : "");
 const TOT = new Set(["Lâm nguyệt lệnh", "Lâm nhật thần", "Nhật xung · Ám động"]);
-const XAU = new Set(["Nguyệt phá", "Nhật xung · Nhật phá", "Tuần không"]);
+const XAU = new Set(["Nguyệt phá", "Nhật xung · Nhật phá", "Tuần không", "Biến tử", "Biến mộ", "Biến tuyệt", "Biến không"]);
 const chip = (txt, kind = "") => `<span class="chip ${kind}">${txt}</span>`;
 const chipTT = (txt) => chip(txt, TOT.has(txt) ? "good" : XAU.has(txt) ? "bad" : "info");
 const chipSao = (txt) => chip(txt, "sao");
@@ -361,6 +361,8 @@ function render(chart, dt, zi) {
         <dt>Nguyệt phá</dt><dd>Địa chi của hào xung với tháng (nguyệt lệnh). Hào bị Nguyệt phá rất yếu trong tháng đó.</dd>
         <dt>Nhật xung · Ám động</dt><dd>Hào tĩnh đang vượng hoặc tướng mà bị ngày xung thì động ngầm, có tác dụng như hào động.</dd>
         <dt>Nhật xung · Nhật phá</dt><dd>Hào tĩnh đang hưu, tù hoặc tử mà bị ngày xung thì bị xung tán, càng yếu.</dd>
+        <dt>Biến tử, Biến mộ, Biến tuyệt</dt><dd>Hào động biến ra địa chi mà ngũ hành của chính hào động ở giai đoạn Tử, Mộ hoặc Tuyệt (theo vòng Trường sinh). Hào động bị kéo yếu đi.</dd>
+        <dt>Biến không</dt><dd>Hào động biến ra địa chi đang Tuần không.</dd>
         <dt>Lâm nguyệt lệnh, Lâm nhật thần</dt><dd>Địa chi của hào trùng với chi tháng hoặc chi ngày, được thêm lực.</dd>
         <dt>Vượng, Tướng, Hưu, Tù, Tử</dt><dd>Sức mạnh của hào theo tháng: cùng hành với tháng là Vượng, được tháng sinh là Tướng, sinh cho tháng là Hưu, khắc tháng là Tù, bị tháng khắc là Tử.</dd>
         <dt>Trường sinh</dt><dd>Mười hai giai đoạn (Trường sinh, Mộc dục, Quan đới, Lâm quan, Đế vượng, Suy, Bệnh, Tử, Mộ, Tuyệt, Thai, Dưỡng) của ngũ hành hào so với chi ngày và chi tháng. Lục hào cho Thổ theo Thủy.</dd>

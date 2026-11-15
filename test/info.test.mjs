@@ -51,7 +51,7 @@ ok("Đào hoa (ngày Mùi → Tý), Dịch mã (ngày Mùi → Tỵ, không có 
 });
 ok("Tuần không ở Dần (chủ hào 1, biến hào 6)", () => {
   assert.ok(t[0].chu.trangThai.includes("Tuần không"));
-  assert.ok(t[5].bien.trangThai.includes("Tuần không"));
+  assert.ok(t[5].bien.trangThai.includes("Biến không")); // hào 6 động biến ra Dần
 });
 ok("Hào tĩnh bị Nhật xung: vượng → Ám động, suy → Nhật phá", () => {
   // Ngày Mùi xung Sửu. Ca 1 (ngày Bính Tuất, tháng Hợi): hào 3 Thìn Thổ tĩnh, Thổ ở tháng Hợi là Tù → Nhật phá
@@ -60,6 +60,15 @@ ok("Hào tĩnh bị Nhật xung: vượng → Ám động, suy → Nhật phá",
   // Ca 5 (ngày Mậu Dần, tháng Tuất): hào 3 Thân Kim tĩnh, Kim ở tháng Tuất là Tướng → Ám động
   const c5 = castChart([6, 8, 7, 7, 9, 6], { y: 2026, m: 10, d: 31, h: 7, mi: 30 });
   assert.ok(chiTietHao(c5)[2].chu.trangThai.includes("Nhật xung · Ám động"));
+});
+
+ok("Hào động biến tử / tuyệt / không (ca 5 Hàm, ca 2 Mông)", () => {
+  const c5 = chiTietHao(castChart([6, 8, 7, 7, 9, 6], { y: 2026, m: 10, d: 31, h: 7, mi: 30 }));
+  assert.equal(c5[0].bien.trangThai[0], "Biến tử");    // Thìn Thổ → Mão
+  assert.equal(c5[5].bien.trangThai[0], "Biến tuyệt"); // Mùi Thổ → Tỵ
+  const c2 = chiTietHao(castChart([6, 7, 6, 6, 6, 7], { y: 2026, m: 9, d: 19, h: 21, mi: 31 }));
+  assert.deepEqual(c2[2].bien.trangThai, ["Biến không"]); // Ngọ → Thìn, tuần không Thìn Tỵ
+  assert.ok(c2.every((x) => !x.bien.tuHaoDong || !x.bien.trangThai.includes("Tuần không")));
 });
 
 console.log(`\n${pass} kiểm thử thông tin bổ sung đạt.`);
