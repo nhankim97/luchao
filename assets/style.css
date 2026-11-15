@@ -309,3 +309,40 @@ input[type="text"], input[type="datetime-local"] {
   .site-header, form, .result-actions, .content, .site-footer { display: none; }
   .card { border: 0; }
 }
+
+/* ───── Trang 64 quẻ ───── */
+.site-header.slim { padding: 12px 0; }
+.site-header .brand { color: var(--brand-ink); font-weight: 700; font-size: 1.1rem; text-decoration: none; }
+.site-header .brand-sub { color: var(--brand-ink); opacity: .9; margin-left: 14px; font-size: .95rem; }
+.que-page h1 { font-size: 1.7rem; line-height: 1.25; margin: 6px 0 4px; color: var(--brand); text-wrap: balance; }
+.que-lead { margin: 0 0 4px; color: var(--muted); font-size: 1.05rem; max-width: 760px; }
+.crumbs { font-size: .88rem; color: var(--muted); margin-top: 14px; }
+.crumbs a, .content a, .site-footer a { color: var(--brand); }
+.que-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 28px; align-items: center; }
+.que-gua { display: grid; gap: 9px; padding: 8px 12px; }
+.bar.lg { width: 120px; height: 16px; gap: 16px; }
+.que-facts { margin: 0; display: grid; gap: 6px; }
+.que-facts div { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 8px; }
+.que-facts dt { color: var(--muted); font-size: .9rem; }
+.que-facts dd { margin: 0; font-weight: 600; }
+.que-cta { grid-column: 1 / -1; margin: 6px 0 0; }
+.que-cta .btn { display: inline-flex; align-items: center; text-decoration: none; }
+.que-table th[scope="row"] { font-weight: 600; text-align: left; padding-left: 10px; }
+.que-rel, .que-cung { padding-left: 1.3em; }
+.que-nav { display: flex; justify-content: space-between; gap: 12px; margin: 24px 0 8px; flex-wrap: wrap; }
+.que-nav a { font-weight: 600; }
+.hub-cung h2 { margin: 0 0 10px; font-size: 1.15rem; }
+.hub-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.hub-list a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); text-decoration: none; }
+.hub-list a:hover { background: var(--accent-soft); }
+.hub-list b { display: block; font-size: .95rem; }
+.hub-list .hint { display: block; font-size: .78rem; }
+.mini-gua { display: grid; gap: 3px; flex: none; }
+.home-64 { padding-left: 1.1em; }
+.home-64 li { margin-bottom: 8px; }
+@media (max-width: 560px) {
+  .que-top { grid-template-columns: minmax(0, 1fr); justify-items: start; }
+  .que-gua { justify-self: center; }
+  .que-facts div { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .que-page h1 { font-size: 1.4rem; }
+}
