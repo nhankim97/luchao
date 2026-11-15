@@ -29,4 +29,4 @@ Bản một file (để đăng ở nơi không tải được JS riêng, ví d�
 
 ## 64 trang quẻ
 
-`node scripts/build-64.mjs` sinh `que/<slug>/index.html` cho 64 quẻ, trang danh mục `que/index.html`, khối liên kết trên trang chủ (giữa hai dấu `<!-- 64-que:… -->`) và `sitemap.xml`. Bảng nạp giáp, lục thân, phục thần lấy từ lõi; phần giới thiệu từng quẻ ở `scripts/que-data.mjs` (tự soạn, đã đối chiếu nghĩa tên quẻ với Kinh Dịch bản Ngô Tất Tố, không trích nguyên văn). Domain lấy từ thẻ canonical của `index.html`, nên sau khi đổi domain chỉ cần chạy lại script này.
+`node scripts/build-64.mjs` sinh `que/<slug>/index.html` cho 64 quẻ, trang danh mục `que/index.html`, khối liên kết trên trang chủ (giữa hai dấu `<!-- 64-que:… -->`) và `sitemap.xml`. Bảng nạp giáp, lục thân, phục thần lấy từ lõi; phần giới thiệu từng quẻ ở `scripts/que-data.mjs`; lời quẻ, lời Tượng, hào từ (âm Hán Việt) và phần giảng ở `scripts/que-kinh-1..4.mjs` (tự soạn, đã đối chiếu nghĩa tên quẻ với Kinh Dịch bản Ngô Tất Tố, không trích nguyên văn). Domain lấy từ thẻ canonical của `index.html`, nên sau khi đổi domain chỉ cần chạy lại script này.

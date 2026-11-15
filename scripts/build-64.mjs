@@ -4,6 +4,11 @@ import { readFile, writeFile, mkdir, rm } from "node:fs/promises";
 import { GUA, PALACES, TRIGRAM, TRIGRAM_HANH, castChart } from "../assets/luchao-core.js";
 import { napCan } from "../assets/luchao-info.js";
 import { QUE_DATA } from "./que-data.mjs";
+import K1 from "./que-kinh-1.mjs";
+import K2 from "./que-kinh-2.mjs";
+import K3 from "./que-kinh-3.mjs";
+import K4 from "./que-kinh-4.mjs";
+const KINH = { ...K1, ...K2, ...K3, ...K4 };
 
 const root = new URL("../", import.meta.url);
 const home = await readFile(new URL("index.html", root), "utf8");
@@ -35,7 +40,13 @@ all.sort((a, b) => PALACES.indexOf(a.palace) - PALACES.indexOf(b.palace) || STAG
 const byKey = Object.fromEntries(all.map((q) => [q.key, q]));
 
 if (all.length !== 64 || new Set(all.map((q) => q.slug)).size !== 64) throw new Error("Cần đúng 64 quẻ, 64 slug khác nhau");
-for (const q of all) if (!QUE_DATA[q.name]) throw new Error("Thiếu giới thiệu cho " + q.name);
+for (const q of all) {
+  if (!QUE_DATA[q.name]) throw new Error("Thiếu giới thiệu cho " + q.name);
+  const k = KINH[q.name];
+  if (!k || !k.qt || !k.qtg || !k.tg || !k.tgg || k.hao.length !== 6 || k.hao.some((h) => h.length !== 2 || !h[0] || !h[1])) throw new Error("Thiếu lời kinh cho " + q.name);
+}
+const VI = ["Sơ", "Nhị", "Tam", "Tứ", "Ngũ", "Thượng"];
+const haoNhan = (k, duong) => { const so = duong ? "Cửu" : "Lục"; return k === 0 || k === 5 ? `${VI[k]} ${so}` : `${so} ${VI[k]}`; };
 
 const fromBits = (bits) => byKey[keyOf(bits)];
 const hoQuai = (b) => fromBits([b[1], b[2], b[3], b[2], b[3], b[4]]); // quẻ hỗ: hào 2-3-4 làm nội, 3-4-5 làm ngoại
@@ -84,7 +95,7 @@ const foot = (rel) => `
 <footer class="site-footer">
   <div class="wrap">
     <p><a href="${rel}">Lập quẻ Lục Hào online</a> · <a href="${rel}que/">Danh sách 64 quẻ theo Bát Cung</a></p>
-    <p>Bảng nạp giáp, lục thân, phục thần sinh tự động từ cùng bộ quy tắc với công cụ lập quẻ (trường phái Tăng San Bốc Dịch). Phần giới thiệu quẻ do trang tự biên soạn.</p>
+    <p>Bảng nạp giáp, lục thân, phục thần sinh tự động từ cùng bộ quy tắc với công cụ lập quẻ (trường phái Tăng San Bốc Dịch). Âm Hán Việt lời quẻ, lời Tượng và hào từ theo nguyên văn Kinh Dịch; phần giảng nghĩa do trang tự biên soạn, có tham khảo bản dịch Kinh Dịch của Ngô Tất Tố.</p>
   </div>
 </footer>
 </body>
@@ -103,7 +114,8 @@ function quePage(q, i) {
   const prev = all[(i + 63) % 64], next = all[(i + 1) % 64];
   const ho = hoQuai(q.bits), doi = doiQuai(q.bits), dao = daoQuai(q.bits);
   const hEnc = lines.join("");
-  const title = `Quẻ ${q.name} – Nạp giáp, Lục thân, Thế Ứng | Lục Hào`;
+  const title = `Quẻ ${q.name} – Lời quẻ, hào từ, nạp giáp, Thế Ứng | Lục Hào`;
+  const k = KINH[q.name];
   const desc = `Quẻ ${q.name}: ${d.y.toLowerCase()}. Thuộc cung ${q.palace} (${q.palaceHanh}), ${q.stage}, Thế hào ${q.the}, Ứng hào ${q.ung}${quaiTinh ? ", " + quaiTinh : ""}. Bảng nạp giáp, lục thân, phục thần và lập quẻ online.`;
   const ld = [crumbs([["Lập quẻ Lục Hào", ""], ["64 quẻ", "que/"], [q.name, `que/${q.slug}/`]])];
 
@@ -147,6 +159,20 @@ function quePage(q, i) {
     <h2>Ý nghĩa quẻ ${q.name}</h2>
     <p>${d.mo}</p>
     <p>Quẻ gồm ngoại quái ${q.upper} (${TUONG[q.upper].split(" – ")[1].toLowerCase()}) ở trên và nội quái ${q.lower} (${TUONG[q.lower].split(" – ")[1].toLowerCase()}) ở dưới. Trong Lục Hào, ý nghĩa tổng quát của quẻ chỉ là bối cảnh; khi luận cần xem Dụng thần, Thế Ứng và sự sinh khắc với ngày tháng gieo quẻ.</p>
+
+    <h2>Lời quẻ (Thoán từ)</h2>
+    <blockquote class="kinh"><p lang="vi">${k.qt}</p></blockquote>
+    <p>${k.qtg}</p>
+
+    <h2>Lời Tượng</h2>
+    <blockquote class="kinh"><p>${k.tg}</p></blockquote>
+    <p>${k.tgg}</p>
+
+    <h2>Hào từ sáu hào quẻ ${q.name}</h2>
+    <ol class="hao-tu">
+${k.hao.map(([am, giang], i) => `      <li><p class="hao-nhan"><b>${haoNhan(i, q.bits[i])}</b> ${bar(q.bits[i], "mini")}${q.the === i + 1 ? ' <span class="tu-the">Thế</span>' : q.ung === i + 1 ? ' <span class="tu-ung">Ứng</span>' : ""}</p><p class="kinh-am">${am}</p><p>${giang}</p></li>`).join("\n")}
+    </ol>
+    <p class="hint">Hào từ đọc từ hào 1 (Sơ) lên hào 6 (Thượng). "Cửu" là hào dương, "Lục" là hào âm. Trong Lục Hào, hào từ chỉ dùng tham khảo thêm; luận quẻ vẫn dựa vào Dụng thần, Thế Ứng và sinh khắc với ngày tháng.</p>
 
     <h2>Bảng nạp giáp quẻ ${q.name}</h2>
     <div class="tbl-wrap">
