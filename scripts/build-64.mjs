@@ -14,6 +14,9 @@ const root = new URL("../", import.meta.url);
 const home = await readFile(new URL("index.html", root), "utf8");
 const BASE = /<link rel="canonical" href="([^"]+)">/.exec(home)[1].replace(/\/?$/, "/");
 const TODAY = new Date().toISOString().slice(0, 10);
+// Số phiên bản CSS theo nội dung, để trình duyệt không dùng bản cũ đã lưu tạm
+const { createHash } = await import("node:crypto");
+const CSS_V = createHash("sha1").update(await readFile(new URL("assets/style.css", root))).digest("hex").slice(0, 8);
 
 export const slugOf = (name) => name.normalize("NFD").replace(/[̀-ͯ]/g, "")
   .replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -60,10 +63,10 @@ const link = (q, from) => `<a href="${from}que/${q.slug}/">${q.name}</a>`;
 // Menu dùng chung cho mọi trang (trang chủ viết sẵn trong index.html)
 export const nav = (rel, cur) => `<nav class="site-nav" aria-label="Menu chính">
   <div class="wrap">
-    <a class="brand" href="${rel}">Lục Hào</a>
+    <a class="brand" href="${rel}"><svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#f6e7c8"/><g fill="#7a1f1f"><rect x="13" y="11" width="38" height="5" rx="1.5"/><rect x="13" y="20" width="16" height="5" rx="1.5"/><rect x="35" y="20" width="16" height="5" rx="1.5"/><rect x="13" y="29" width="38" height="5" rx="1.5"/><rect x="13" y="38" width="16" height="5" rx="1.5"/><rect x="35" y="38" width="16" height="5" rx="1.5"/><rect x="13" y="47" width="38" height="5" rx="1.5"/></g></svg><span class="brand-text">Lục Hào</span></a>
     <ul>
       <li><a class="item" href="${rel}">Lập quẻ</a></li>
-      <li><a class="item" href="${rel}que/"${cur === "hub" ? ' aria-current="page"' : ""}>64 quẻ</a></li>
+      <li><a class="item" href="${rel}que/"${cur === "hub" ? ' aria-current="page"' : cur === "que" ? ' aria-current="true"' : ""}>64 quẻ</a></li>
       <li><a class="item" href="${rel}#huong-dan">Hướng dẫn</a></li>
       <li><a class="item" href="${rel}#faq">Hỏi đáp</a></li>
     </ul>
@@ -90,7 +93,7 @@ function head({ title, desc, path, rel, ld }) {
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="${rel}favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#7a1f1f">
-<link rel="stylesheet" href="${rel}assets/style.css">
+<link rel="stylesheet" href="${rel}assets/style.css?v=${CSS_V}">
 <script type="application/ld+json">
 ${JSON.stringify(ld, null, 1)}
 </script>
@@ -265,8 +268,9 @@ ${urls.map((u) => `  <url>\n    <loc>${BASE}${u}</loc>\n    <lastmod>${TODAY}</l
 // Khối liên kết 64 quẻ trên trang chủ (giữa hai dấu mốc)
 const block = PALACES.map((p) => `      <li><b>Cung ${p}:</b> ${all.filter((x) => x.palace === p).map((x) => `<a href="que/${x.slug}/">${x.name}</a>`).join(", ")}</li>`).join("\n");
 const START = "<!-- 64-que:start -->", END = "<!-- 64-que:end -->";
-if (home.includes(START)) {
-  const out = home.replace(new RegExp(`${START}[\\s\\S]*?${END}`), `${START}\n    <ul class="home-64">\n${block}\n    </ul>\n    ${END}`);
-  await writeFile(new URL("index.html", root), out);
+let homeOut = home.replace(/assets\/style\.css(\?v=[0-9a-f]+)?"/,`assets/style.css?v=${CSS_V}"`);
+if (homeOut.includes(START)) {
+  homeOut = homeOut.replace(new RegExp(`${START}[\\s\\S]*?${END}`), `${START}\n    <ul class="home-64">\n${block}\n    </ul>\n    ${END}`);
 }
+await writeFile(new URL("index.html", root), homeOut);
 console.log(`Đã sinh ${all.length} trang quẻ, trang danh mục và sitemap (${urls.length} URL) với BASE ${BASE}`);

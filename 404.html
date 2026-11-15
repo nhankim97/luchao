@@ -11,12 +11,14 @@
   body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; background: #faf6ef; color: #2a211c;
          font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; padding: 0; box-sizing: border-box; }
   main { text-align: center; max-width: 420px; margin: auto; padding: 24px 16px; }
-  .site-nav { position: sticky; top: 0; background: #5e1717; }
-  .site-nav .wrap { display: flex; align-items: center; gap: 8px; min-height: 48px; max-width: 1080px; margin: 0 auto; padding: 0 16px; box-sizing: border-box; }
-  .site-nav .brand { color: #fff; font-weight: 700; text-decoration: none; margin-right: auto; margin-top: 0; padding: 0; background: none; }
-  .site-nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 2px; }
-  .site-nav .item { display: block; margin-top: 0; background: none; color: #fff; padding: 8px 10px; font-size: .95rem; font-weight: 400; }
-  @media (max-width: 480px) { .site-nav .brand { display: none; } .site-nav ul { width: 100%; justify-content: space-between; } .site-nav .item { padding: 8px 6px; font-size: .9rem; } }
+  .site-nav { position: sticky; top: 0; background: #7a1f1f; box-shadow: 0 2px 10px rgba(60,10,10,.22); }
+  .site-nav .wrap { display: flex; align-items: center; gap: 12px; min-height: 56px; max-width: 1080px; margin: 0 auto; padding: 0 16px; box-sizing: border-box; }
+  .site-nav .brand { display: inline-flex; align-items: center; gap: 10px; margin: 0 auto 0 0; padding: 0; background: none; color: #fff; font-weight: 700; font-size: 1.12rem; }
+  .site-nav .brand-mark { width: 30px; height: 30px; }
+  .site-nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 4px; }
+  .site-nav .item { display: block; margin: 0; padding: 8px 14px; border-radius: 999px; background: none; color: rgba(255,255,255,.86); font-size: .95rem; font-weight: 500; }
+  .site-nav .item:hover { background: rgba(255,255,255,.12); color: #fff; }
+  @media (max-width: 560px) { .site-nav .brand-text { display: none; } .site-nav ul { flex: 1; justify-content: space-between; } .site-nav .item { padding: 7px 9px; font-size: .88rem; } }
   h1 { color: #7a1f1f; margin: 0 0 8px; }
   a { display: inline-block; margin-top: 12px; background: #7a1f1f; color: #fff; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; }
 </style>
@@ -24,7 +26,7 @@
 <body>
 <nav class="site-nav" aria-label="Menu chính">
   <div class="wrap">
-    <a class="brand" href="/luchao/">Lục Hào</a>
+    <a class="brand" href="/luchao/"><svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#f6e7c8"/><g fill="#7a1f1f"><rect x="13" y="11" width="38" height="5" rx="1.5"/><rect x="13" y="20" width="16" height="5" rx="1.5"/><rect x="35" y="20" width="16" height="5" rx="1.5"/><rect x="13" y="29" width="38" height="5" rx="1.5"/><rect x="13" y="38" width="16" height="5" rx="1.5"/><rect x="35" y="38" width="16" height="5" rx="1.5"/><rect x="13" y="47" width="38" height="5" rx="1.5"/></g></svg><span class="brand-text">Lục Hào</span></a>
     <ul>
       <li><a class="item" href="/luchao/">Lập quẻ</a></li>
       <li><a class="item" href="/luchao/que/">64 quẻ</a></li>
