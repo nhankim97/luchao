@@ -354,3 +354,24 @@ input[type="text"], input[type="datetime-local"] {
 .hao-tu p { margin: 0; }
 .hao-tu .hao-nhan { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
 .hao-tu .kinh-am { font-style: italic; color: var(--brand); margin-bottom: 2px; }
+
+/* ───── Menu chính (dính trên cùng khi cuộn) ───── */
+.site-nav {
+  position: sticky; top: 0; z-index: 20;
+  background: #5e1717; color: #fff;
+  padding-top: env(safe-area-inset-top, 0px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+}
+.site-nav .wrap { display: flex; align-items: center; gap: 8px; min-height: 48px; }
+.site-nav .brand { color: #fff; font-weight: 700; font-size: 1.05rem; text-decoration: none; margin-right: auto; white-space: nowrap; }
+.site-nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 2px; }
+.site-nav .item { display: block; color: #fff; text-decoration: none; padding: 8px 10px; border-radius: 6px; font-size: .95rem; white-space: nowrap; }
+.site-nav .item:hover { background: rgba(255, 255, 255, .12); }
+.site-nav .item[aria-current="page"] { background: rgba(255, 255, 255, .2); font-weight: 600; }
+.content h2, .card { scroll-margin-top: 60px; }
+@media (max-width: 480px) {
+  .site-nav .brand { display: none; }
+  .site-nav ul { width: 100%; justify-content: space-between; }
+  .site-nav .item { padding: 8px 6px; font-size: .9rem; }
+}
+@media print { .site-nav { display: none; } }

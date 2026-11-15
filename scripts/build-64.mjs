@@ -57,6 +57,19 @@ const bar = (d, cls = "") => `<span class="bar ${cls}" aria-hidden="true">${d ? 
 const hanhSpan = (h) => `<span class="h-${h}">${h}</span>`;
 const link = (q, from) => `<a href="${from}que/${q.slug}/">${q.name}</a>`;
 
+// Menu dùng chung cho mọi trang (trang chủ viết sẵn trong index.html)
+export const nav = (rel, cur) => `<nav class="site-nav" aria-label="Menu chính">
+  <div class="wrap">
+    <a class="brand" href="${rel}">Lục Hào</a>
+    <ul>
+      <li><a class="item" href="${rel}">Lập quẻ</a></li>
+      <li><a class="item" href="${rel}que/"${cur === "hub" ? ' aria-current="page"' : ""}>64 quẻ</a></li>
+      <li><a class="item" href="${rel}#huong-dan">Hướng dẫn</a></li>
+      <li><a class="item" href="${rel}#faq">Hỏi đáp</a></li>
+    </ul>
+  </div>
+</nav>`;
+
 function head({ title, desc, path, rel, ld }) {
   return `<!doctype html>
 <html lang="vi">
@@ -83,9 +96,7 @@ ${JSON.stringify(ld, null, 1)}
 </script>
 </head>
 <body>
-<header class="site-header slim">
-  <div class="wrap"><a class="brand" href="${rel}">Lập quẻ Lục Hào online</a> <a class="brand-sub" href="${rel}que/">64 quẻ</a></div>
-</header>`;
+${nav(rel, path === "que/" ? "hub" : "que")}`;
 }
 const crumbs = (items) => ({
   "@context": "https://schema.org", "@type": "BreadcrumbList",

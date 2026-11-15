@@ -8,14 +8,31 @@
 <link rel="icon" href="/luchao/favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#7a1f1f">
 <style>
-  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #faf6ef; color: #2a211c;
-         font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; padding: 16px; box-sizing: border-box; }
-  main { text-align: center; max-width: 420px; }
+  body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; background: #faf6ef; color: #2a211c;
+         font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; padding: 0; box-sizing: border-box; }
+  main { text-align: center; max-width: 420px; margin: auto; padding: 24px 16px; }
+  .site-nav { position: sticky; top: 0; background: #5e1717; }
+  .site-nav .wrap { display: flex; align-items: center; gap: 8px; min-height: 48px; max-width: 1080px; margin: 0 auto; padding: 0 16px; box-sizing: border-box; }
+  .site-nav .brand { color: #fff; font-weight: 700; text-decoration: none; margin-right: auto; margin-top: 0; padding: 0; background: none; }
+  .site-nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 2px; }
+  .site-nav .item { display: block; margin-top: 0; background: none; color: #fff; padding: 8px 10px; font-size: .95rem; font-weight: 400; }
+  @media (max-width: 480px) { .site-nav .brand { display: none; } .site-nav ul { width: 100%; justify-content: space-between; } .site-nav .item { padding: 8px 6px; font-size: .9rem; } }
   h1 { color: #7a1f1f; margin: 0 0 8px; }
   a { display: inline-block; margin-top: 12px; background: #7a1f1f; color: #fff; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; }
 </style>
 </head>
 <body>
+<nav class="site-nav" aria-label="Menu chính">
+  <div class="wrap">
+    <a class="brand" href="/luchao/">Lục Hào</a>
+    <ul>
+      <li><a class="item" href="/luchao/">Lập quẻ</a></li>
+      <li><a class="item" href="/luchao/que/">64 quẻ</a></li>
+      <li><a class="item" href="/luchao/#huong-dan">Hướng dẫn</a></li>
+      <li><a class="item" href="/luchao/#faq">Hỏi đáp</a></li>
+    </ul>
+  </div>
+</nav>
 <main>
   <h1>Không tìm thấy trang</h1>
   <p>Đường dẫn này không tồn tại. Hãy quay về trang chính để lập quẻ Lục Hào.</p>
